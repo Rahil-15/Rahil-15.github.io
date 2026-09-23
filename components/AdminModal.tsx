@@ -2,7 +2,28 @@
 
 import React, { useState, useEffect } from "react";
 import { usePortfolio } from "@/lib/portfolio-context";
-import { LogOut, RotateCcw, Download, Upload, Shield, X, Key, LockKeyhole } from "lucide-react";
+import {
+  LogOut,
+  RotateCcw,
+  Download,
+  Upload,
+  Shield,
+  X,
+  Key,
+  LockKeyhole,
+  Cloud,
+  Check,
+  Globe,
+  Database,
+  Sparkles,
+} from "lucide-react";
+import {
+  getCloudConfig,
+  saveCloudConfig,
+  saveCloudPortfolioData,
+  fetchCloudPortfolioData,
+  CloudConfig,
+} from "@/lib/cloud-storage";
 
 export default function AdminModal() {
   const {
@@ -17,6 +38,15 @@ export default function AdminModal() {
     isLoginModalOpen,
     openLoginModal,
     closeLoginModal,
+    heroData,
+    aboutData,
+    focusData,
+    projects,
+    skills,
+    experience,
+    journey,
+    achievements,
+    languages,
   } = usePortfolio();
 
   const [passwordInput, setPasswordInput] = useState("");
@@ -29,6 +59,14 @@ export default function AdminModal() {
 
   const [newPassInput, setNewPassInput] = useState("");
   const [confirmNewPass, setConfirmNewPass] = useState("");
+
+  // Cloud Storage Setup Modal State
+  const [showCloudModal, setShowCloudModal] = useState(false);
+  const [cloudProvider, setCloudProvider] = useState<"supabase" | "firebase" | "jsonbin">("jsonbin");
+  const [cloudApiUrl, setCloudApiUrl] = useState("");
+  const [cloudApiKey, setCloudApiKey] = useState("");
+  const [isCloudActive, setIsCloudActive] = useState(false);
+  const [cloudStatusMsg, setCloudStatusMsg] = useState("");
 
   // Shortcut Ctrl + Shift + A or Ctrl + Alt + E
   useEffect(() => {
@@ -48,6 +86,17 @@ export default function AdminModal() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isLoginModalOpen, openLoginModal, closeLoginModal]);
+
+  // Load existing Cloud config on mount
+  useEffect(() => {
+    const conf = getCloudConfig();
+    if (conf) {
+      setCloudProvider(conf.provider as any);
+      setCloudApiUrl(conf.apiUrl || "");
+      setCloudApiKey(conf.apiKey || "");
+      setIsCloudActive(!!conf.apiUrl);
+    }
+  }, []);
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,6 +174,49 @@ export default function AdminModal() {
     }
   };
 
+  const handleSaveCloudSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cloudApiUrl) {
+      alert("Please enter a valid Cloud Database / API URL.");
+      return;
+    }
+
+    const config: CloudConfig = {
+      provider: cloudProvider,
+      apiUrl: cloudApiUrl.trim(),
+      apiKey: cloudApiKey.trim(),
+    };
+
+    saveCloudConfig(config);
+    setCloudStatusMsg("Testing connection & syncing data to cloud...");
+
+    // Build current master payload
+    const payload = {
+      heroData,
+      aboutData,
+      focusData,
+      projectsList: projects,
+      skillsList: skills,
+      experienceList: experience,
+      journeyList: journey,
+      achievementsList: achievements,
+      languagesList: languages,
+    };
+
+    const success = await saveCloudPortfolioData(payload, config);
+    if (success) {
+      setIsCloudActive(true);
+      setCloudStatusMsg("✓ Live Cloud Sync Active!");
+      alert(
+        "✓ Real-Time Cloud Database Connected!\n\nEvery edit you make in Admin Mode on any device will now instantly update live for ALL visitors on https://rahil-portfolio15.netlify.app/ in real time!"
+      );
+      setShowCloudModal(false);
+    } else {
+      setCloudStatusMsg("❌ Connection failed. Check API URL and Key.");
+      alert("Failed to connect to Cloud API. Please check your API URL and API Key.");
+    }
+  };
+
   return (
     <>
       {/* Admin Top Status Bar when Logged In */}
@@ -133,10 +225,24 @@ export default function AdminModal() {
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="font-bold tracking-wider">ADMIN EDIT MODE ACTIVE</span>
-            <span className="text-neutral-400 hidden lg:inline">| Edit controls enabled across all portfolio sections</span>
+            <span className="text-neutral-400 hidden lg:inline">| Live editing controls enabled</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Cloud Database Sync Button */}
+            <button
+              onClick={() => setShowCloudModal(true)}
+              className={`px-3 py-1 rounded font-bold flex items-center gap-1.5 transition-all ${
+                isCloudActive
+                  ? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 shadow-md shadow-cyan-500/20"
+                  : "bg-amber-500/20 border border-amber-500/50 text-amber-300"
+              }`}
+              title="Connect free Cloud Database for instant live edits everywhere"
+            >
+              <Cloud className="w-3.5 h-3.5 text-cyan-400" />
+              {isCloudActive ? "Live Cloud Sync Active" : "Connect Cloud DB"}
+            </button>
+
             <button
               onClick={() => setShowChangePasswordModal(true)}
               className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-white flex items-center gap-1 transition-all"
@@ -147,7 +253,7 @@ export default function AdminModal() {
             <button
               onClick={handleExport}
               className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-white flex items-center gap-1 transition-all"
-              title="Download backup JSON file of your portfolio data"
+              title="Download portfolio-default.json for Netlify deployment"
             >
               <Download className="w-3.5 h-3.5 text-emerald-400" /> Export Backup
             </button>
@@ -251,6 +357,123 @@ export default function AdminModal() {
                   className="px-5 py-2.5 font-bold rounded-xl bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20"
                 >
                   {hasCustomPassword ? "Unlock Admin Mode" : "Save Password & Login"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Cloud Database Setup Modal */}
+      {showCloudModal && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-lg w-full p-6 rounded-3xl border border-cyan-500/40 bg-slate-900 shadow-2xl relative">
+            <button
+              onClick={() => setShowCloudModal(false)}
+              className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                <Cloud className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  Cloud Database Real-Time Sync
+                </h3>
+                <p className="text-xs text-neutral-400 font-mono">
+                  Connect a free database so your live edits appear for ALL visitors worldwide in real-time!
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveCloudSetup} className="space-y-4 text-xs font-mono">
+              <div>
+                <label className="block text-neutral-300 mb-1 font-bold">Select Cloud Provider:</label>
+                <select
+                  value={cloudProvider}
+                  onChange={(e) => setCloudProvider(e.target.value as any)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-white/15 text-white focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="jsonbin">JSONBin.io (Recommended - 1 Click Free API)</option>
+                  <option value="supabase">Supabase (Free PostgreSQL Database)</option>
+                  <option value="firebase">Firebase (Realtime Database)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-neutral-300 mb-1 font-bold">
+                  {cloudProvider === "jsonbin"
+                    ? "JSONBin Bin API URL:"
+                    : cloudProvider === "supabase"
+                    ? "Supabase Table REST API URL:"
+                    : "Firebase Realtime DB URL:"}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={cloudApiUrl}
+                  onChange={(e) => setCloudApiUrl(e.target.value)}
+                  placeholder={
+                    cloudProvider === "jsonbin"
+                      ? "https://api.jsonbin.io/v3/b/YOUR_BIN_ID"
+                      : cloudProvider === "supabase"
+                      ? "https://YOUR_ID.supabase.co/rest/v1/portfolio"
+                      : "https://YOUR_ID.firebaseio.com/portfolio.json"
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-neutral-300 mb-1 font-bold">
+                  API Key / Secret Token (Optional if public write):
+                </label>
+                <input
+                  type="password"
+                  value={cloudApiKey}
+                  onChange={(e) => setCloudApiKey(e.target.value)}
+                  placeholder="Paste Master Key / anon apikey token"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              {cloudStatusMsg && (
+                <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs">
+                  {cloudStatusMsg}
+                </div>
+              )}
+
+              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 space-y-1.5 text-[11px] text-neutral-400">
+                <p className="text-white font-bold flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> Free Setup Instructions:
+                </p>
+                <p>
+                  1. Create a free bin on <a href="https://jsonbin.io" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline">jsonbin.io</a> or table on Supabase/Firebase.
+                </p>
+                <p>
+                  2. Paste your Bin URL and Master Key above and click <strong>Connect & Sync</strong>.
+                </p>
+                <p>
+                  3. Any edit you make in Admin mode will instantly sync live to every visitor on Netlify!
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCloudModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-white/10 text-neutral-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 font-bold rounded-xl bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" /> Connect & Test Sync
                 </button>
               </div>
             </form>

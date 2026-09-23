@@ -7,6 +7,13 @@ import { experience as defaultExperience, ExperienceItem } from "@/data/experien
 import { journey as defaultJourney, JourneyItem } from "@/data/journey";
 import { achievements as defaultAchievements, AchievementItem } from "@/data/achievements";
 import { savePortfolioData, loadPortfolioData } from "@/lib/storage";
+import {
+  fetchCloudPortfolioData,
+  saveCloudPortfolioData,
+  saveCloudConfig,
+  getCloudConfig,
+  CloudConfig,
+} from "@/lib/cloud-storage";
 
 export interface HeroData {
   name: string;
@@ -131,24 +138,37 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [achievementsList, setAchievementsList] = useState<AchievementItem[]>(defaultAchievementsList);
   const [languagesList, setLanguagesList] = useState<string[]>(defaultLanguagesList);
 
-  // Load from Storage (IndexedDB + LocalStorage fallback) on mount
+  const applyPayload = (payload: any) => {
+    if (!payload) return;
+    if (payload.heroData) setHeroData(payload.heroData);
+    if (payload.aboutData) setAboutData(payload.aboutData);
+    if (payload.focusData) setFocusData(payload.focusData);
+    if (payload.projectsList) setProjectsList(payload.projectsList);
+    if (payload.skillsList) setSkillsList(payload.skillsList);
+    if (payload.experienceList) setExperienceList(payload.experienceList);
+    if (payload.journeyList) setJourneyList(payload.journeyList);
+    if (payload.achievementsList) setAchievementsList(payload.achievementsList);
+    if (payload.languagesList) setLanguagesList(payload.languagesList);
+  };
+
+  // Load from Storage (IndexedDB + Cloud Database) on mount
   useEffect(() => {
     const initStorage = async () => {
       try {
         const savedPassword = localStorage.getItem(PASSWORD_STORAGE_KEY);
         if (savedPassword) setCustomPasswordState(savedPassword);
 
+        // 1. Fast local IndexedDB load
         const loadedData = await loadPortfolioData();
         if (loadedData) {
-          if (loadedData.heroData) setHeroData(loadedData.heroData);
-          if (loadedData.aboutData) setAboutData(loadedData.aboutData);
-          if (loadedData.focusData) setFocusData(loadedData.focusData);
-          if (loadedData.projectsList) setProjectsList(loadedData.projectsList);
-          if (loadedData.skillsList) setSkillsList(loadedData.skillsList);
-          if (loadedData.experienceList) setExperienceList(loadedData.experienceList);
-          if (loadedData.journeyList) setJourneyList(loadedData.journeyList);
-          if (loadedData.achievementsList) setAchievementsList(loadedData.achievementsList);
-          if (loadedData.languagesList) setLanguagesList(loadedData.languagesList);
+          applyPayload(loadedData);
+        }
+
+        // 2. Fetch latest master data from Cloud Database
+        const cloudData = await fetchCloudPortfolioData();
+        if (cloudData) {
+          applyPayload(cloudData);
+          savePortfolioData(cloudData);
         }
       } catch (e) {
         console.error("Failed to load portfolio data from storage", e);
@@ -159,6 +179,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const saveData = (data: any) => {
     savePortfolioData(data);
+    saveCloudPortfolioData(data);
   };
 
   const currentPayload = () => ({
