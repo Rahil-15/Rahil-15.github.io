@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0B0F19;
+  --accent: #6366F1;
+  --accent-muted: #6366F120;
+  --text: #E5E7EB;
+  --text-muted: #6B7280;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(99, 102, 241, 0.5);
+
+  --background: var(--bg);
+  --foreground: var(--text);
+
+  /* Shadcn Baseline for any specific components we add */
+  --card: #111827;
+  --card-foreground: #E5E7EB;
+  --popover: #111827;
+  --popover-foreground: #E5E7EB;
+  --primary: var(--accent);
+  --primary-foreground: #ffffff;
+  --secondary: #1f2937;
+  --secondary-foreground: #6B7280;
+  --muted: #1f2937;
+  --muted-foreground: var(--text-muted);
+  --destructive: #ef4444;
+  --destructive-foreground: #f8fafc;
+  --border-color: var(--border);
+  --input: var(--border);
+  --ring: var(--accent);
+  --radius: 0.75rem;
+}
+
+@theme {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-accent: var(--accent);
+  --color-accent-muted: var(--accent-muted);
+  --color-text-muted: var(--text-muted);
+
+  --font-sans: var(--font-dm-sans);
+  --font-heading: var(--font-syne);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}

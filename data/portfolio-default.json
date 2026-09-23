@@ -1,0 +1,256 @@
+{
+  "heroData": {
+    "name": "Mohammadrahil Nasardi",
+    "role": "Data Science & Analytics | Machine Learning | GenAI (RAG & Federated Learning)",
+    "tagline": "B.E. CSE (AI&ML) student at VTU with practical experience in Python, SQL, exploratory data analysis, predictive modeling, and intelligent agent pipelines. Seeking an entry-level Data Science or Data Analytics role to build data-driven solutions.",
+    "institution": "Jain College of Engg, VTU",
+    "cgpa": "7.8 / 10",
+    "expectedGrad": "May 2027",
+    "email": "rahiljc15@gmail.com",
+    "github": "https://github.com/Rahil-15",
+    "linkedin": "https://linkedin.com/in/rahil-nasardi",
+    "location": "Belagavi, Karnataka",
+    "photoUrl": "",
+    "badge1Text": "Data Science & AIML Student",
+    "badge2Text": "Jain College of Engg, VTU"
+  },
+  "aboutData": {
+    "heading": "Empowering Decision Making through Data Analytics & Machine Learning",
+    "paragraph1": "I am a B.E. student specializing in Computer Science & Engineering (Artificial Intelligence & Machine Learning) at Jain College of Engineering and Research, VTU.",
+    "paragraph2": "My expertise spans exploratory data analysis (EDA), data cleaning, statistical modeling, feature engineering, and predictive ML systems. I also engineer modern AI solutions including Retrieval-Augmented Generation (RAG) pipelines and multi-agent Federated Learning architectures using Python, SQL, TensorFlow, FastAPI, and Power BI.",
+    "paragraph3": "Whether it's uncovering pricing trends across thousands of dataset records or building real-time crop disease detection models, I focus on solving real-world problems with data-driven precision.",
+    "cgpa": "7.8",
+    "projectsCount": "5+",
+    "internshipCount": "1",
+    "participantsCount": "100+",
+    "location": "Belagavi, Karnataka, India",
+    "gradDate": "May 2027"
+  },
+  "focusData": {
+    "badge": "Leadership & Management Focus",
+    "title": "Event Coordinator — Savishkar 2025",
+    "description": "Spearheaded operational leadership for the flagship \"Seconds Ka Tashan\" competition during Savishkar 2025. Coordinated team logistics, volunteer workflows, participant tracking, and venue execution across four high-intensity competitive elimination rounds.",
+    "teamsCount": "50+",
+    "participantsCount": "100+",
+    "volunteersCount": "15–20",
+    "roundsCount": "4"
+  },
+  "projectsList": [
+    {
+      "title": "AgroSentinel AI",
+      "subtitle": "Multi-Agent Federated Learning System for Crop Disease Surveillance",
+      "description": "Led a 4-member team to build a privacy-preserving federated learning system for predictive crop disease detection across distributed nodes.",
+      "highlights": [
+        "Designed & deployed FedAvg pipeline with Flower framework preventing centralized raw image exposure",
+        "Integrated TensorFlow/Keras CNN models with FastAPI backend & real-time Streamlit dashboard",
+        "Managed GitHub workstreams, code reviews, and feature branch releases"
+      ],
+      "tech": ["Python", "TensorFlow", "Keras", "FastAPI", "Streamlit", "Flower (flwr)"],
+      "category": "AI & GenAI",
+      "link": "https://github.com/Rahil-15",
+      "github": "https://github.com/Rahil-15"
+    },
+    {
+      "title": "MediBot",
+      "subtitle": "AI Medical Assistant using Retrieval-Augmented Generation (RAG)",
+      "description": "Led the 6th-semester mini project team in building an intelligent medical assistant capable of querying medical corpora with high accuracy.",
+      "highlights": [
+        "Built FastAPI backend APIs for vector document retrieval & context-aware generation",
+        "Applied advanced prompt engineering & semantic search to eliminate model hallucinations",
+        "Optimized response generation speeds and response precision"
+      ],
+      "tech": ["Python", "FastAPI", "RAG", "REST APIs", "Prompt Engineering"],
+      "category": "AI & GenAI",
+      "link": "https://github.com/Rahil-15",
+      "github": "https://github.com/Rahil-15"
+    },
+    {
+      "title": "Amazon Sales Analysis",
+      "subtitle": "Exploratory Data Analysis & Business Intelligence Dashboard",
+      "description": "Executed comprehensive EDA on vast Amazon sales datasets to uncover regional revenue trends, KPI highlights, and consumer purchasing behavior.",
+      "highlights": [
+        "Cleaned & modeled multidimensional sales records using Pandas & SQL query pipelines",
+        "Designed interactive Power BI dashboards visualizing KPIs, category performance & regional trends",
+        "Provided actionable analytical reports to drive data-informed business strategies"
+      ],
+      "tech": ["Python", "SQL", "Pandas", "NumPy", "Matplotlib", "Power BI"],
+      "category": "Data Analytics",
+      "link": "https://github.com/Rahil-15",
+      "github": "https://github.com/Rahil-15"
+    },
+    {
+      "title": "AQI Alert System & Dashboard",
+      "subtitle": "Machine Learning Air Quality Prediction & Pollution Alerts",
+      "description": "Developed a predictive ML model analyzing ambient air quality index data with an interactive real-time dashboard and automated pollution risk alerts.",
+      "highlights": [
+        "Engineered environmental feature vectors and trained predictive regression models",
+        "Created dynamic visual dashboards displaying real-time AQI tracking and automated alerts"
+      ],
+      "tech": ["Python", "Scikit-Learn", "Pandas", "Streamlit", "Matplotlib"],
+      "category": "ML & Data Systems",
+      "link": "https://github.com/Rahil-15",
+      "github": "https://github.com/Rahil-15"
+    },
+    {
+      "title": "Face Mask Detection System",
+      "subtitle": "Real-Time Computer Vision Model using CNNs",
+      "description": "Constructed a deep learning convolutional neural network (CNN) model for instant face mask classification from video streams.",
+      "highlights": [
+        "Trained custom CNN architecture on binary mask image datasets using TensorFlow & Keras",
+        "Integrated OpenCV pipeline for live camera stream frame processing and bounding box detection"
+      ],
+      "tech": ["Python", "TensorFlow", "Keras", "OpenCV", "Deep Learning"],
+      "category": "Computer Vision",
+      "link": "https://github.com/Rahil-15",
+      "github": "https://github.com/Rahil-15"
+    }
+  ],
+  "skillsList": [
+    {
+      "category": "Data Science & Analytics",
+      "iconName": "chart",
+      "items": [
+        "Exploratory Data Analysis (EDA)",
+        "Data Cleaning & Preprocessing",
+        "Data Visualization",
+        "Statistical Analysis",
+        "Machine Learning",
+        "Feature Engineering",
+        "Feature Scaling",
+        "Model Evaluation"
+      ]
+    },
+    {
+      "category": "AI & Generative AI",
+      "iconName": "brain",
+      "items": [
+        "Retrieval-Augmented Generation (RAG)",
+        "Federated Learning",
+        "Flower (flwr)",
+        "FastAPI",
+        "REST APIs",
+        "Prompt Engineering"
+      ]
+    },
+    {
+      "category": "Libraries & ML Frameworks",
+      "iconName": "cpu",
+      "items": [
+        "Pandas",
+        "NumPy",
+        "Scikit-learn",
+        "Matplotlib",
+        "TensorFlow",
+        "Keras",
+        "OpenCV"
+      ]
+    },
+    {
+      "category": "Visualization & BI",
+      "iconName": "database",
+      "items": [
+        "Power BI",
+        "Streamlit",
+        "Interactive Dashboards",
+        "KPI Reporting"
+      ]
+    },
+    {
+      "category": "Programming Languages",
+      "iconName": "code",
+      "items": [
+        "Python",
+        "SQL",
+        "Java",
+        "HTML5",
+        "CSS3",
+        "JavaScript"
+      ]
+    },
+    {
+      "category": "Developer Tools & Platforms",
+      "iconName": "wrench",
+      "items": [
+        "Git",
+        "GitHub",
+        "Jupyter Notebook",
+        "VS Code",
+        "PyCharm"
+      ]
+    }
+  ],
+  "experienceList": [
+    {
+      "role": "Data Analysis Intern",
+      "company": "Cognifyz Technologies",
+      "period": "Sept 2025 – Nov 2025",
+      "location": "Remote / Hybrid",
+      "description": "Conducted end-to-end Exploratory Data Analysis (EDA) and city-wise performance benchmarking on extensive restaurant datasets.",
+      "highlights": [
+        "Uncovered data-driven trends in cuisine distribution, customer ratings, pricing metrics, and online delivery patterns.",
+        "Cleaned, transformed, and engineered structured datasets using Python, Pandas, and NumPy.",
+        "Generated analytical reports and key visualizations to empower business decision-makers with actionable insights."
+      ],
+      "tech": ["Python", "Pandas", "NumPy", "Matplotlib", "Jupyter Notebook", "EDA"]
+    }
+  ],
+  "journeyList": [
+    {
+      "year": "2023 – 2027",
+      "title": "Bachelor of Engineering (B.E.) in CSE (AI & ML)",
+      "institution": "Jain College of Engineering and Research, VTU",
+      "description": "Deep academic specialization in Data Science, Machine Learning algorithms, Computer Vision, Neural Networks, and Software Engineering. Current CGPA: 7.8 / 10 (Expected Graduation: May 2027).",
+      "badge": "CGPA: 7.8/10"
+    },
+    {
+      "year": "Sept 2025",
+      "title": "Data Analysis Internship",
+      "institution": "Cognifyz Technologies",
+      "description": "Performed exploratory analytics, market pricing trends analysis, and city-wise performance benchmarking using Python data stack.",
+      "badge": "Internship"
+    },
+    {
+      "year": "2025",
+      "title": "Event Coordinator – Savishkar 2025",
+      "institution": "Seconds Ka Tashan Flagship Event",
+      "description": "Led event operations coordinating 50+ competing teams, 100+ active participants, and 15–20 volunteers over 4 competitive rounds.",
+      "badge": "Leadership"
+    },
+    {
+      "year": "2025 – 2026",
+      "title": "AgroSentinel AI & MediBot Major Projects",
+      "institution": "Team Lead & Lead Developer",
+      "description": "Spearheaded team development of AgroSentinel AI (Multi-Agent Federated ML for Crop Disease Surveillance) and MediBot (RAG-based AI Medical Assistant).",
+      "badge": "AI Innovation"
+    }
+  ],
+  "achievementsList": [
+    {
+      "title": "Event Coordinator – Savishkar 2025",
+      "category": "Leadership",
+      "detail": "Directed the flagship 'Seconds Ka Tashan' event, managing 50+ teams, 100+ participants, and 15–20 volunteers across 4 competitive elimination rounds."
+    },
+    {
+      "title": "ASCAI Student Member",
+      "category": "Community",
+      "detail": "Active organizer for the Association of Students of Computer Science & AIML, facilitating hackathons and departmental technical events."
+    },
+    {
+      "title": "AI Assisted Coding for Beginners Certification",
+      "category": "Certification",
+      "detail": "Issued by AZ Career Link (Participation Certification), validating AI-powered software engineering and code synthesis capabilities."
+    },
+    {
+      "title": "Multilingual Communication Skills",
+      "category": "Academic",
+      "detail": "Fluent in English, Hindi, Kannada (Read, Write, Speak), Urdu (Speak), and Marathi (Read) for effective global & cross-functional collaboration."
+    }
+  ],
+  "languagesList": [
+    "English",
+    "Hindi",
+    "Kannada (Read/Write/Speak)",
+    "Urdu (Speak)",
+    "Marathi (Read)"
+  ]
+}
