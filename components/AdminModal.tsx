@@ -16,12 +16,15 @@ import {
   Globe,
   Database,
   Sparkles,
+  AlertCircle,
+  Copy,
 } from "lucide-react";
 import {
   getCloudConfig,
   saveCloudConfig,
   saveCloudPortfolioData,
   fetchCloudPortfolioData,
+  testCloudConnection,
   CloudConfig,
 } from "@/lib/cloud-storage";
 
@@ -62,11 +65,19 @@ export default function AdminModal() {
 
   // Cloud Storage Setup Modal State
   const [showCloudModal, setShowCloudModal] = useState(false);
-  const [cloudProvider, setCloudProvider] = useState<"supabase" | "firebase" | "jsonbin">("jsonbin");
-  const [cloudApiUrl, setCloudApiUrl] = useState("");
-  const [cloudApiKey, setCloudApiKey] = useState("");
+  const [cloudProvider, setCloudProvider] = useState<"supabase" | "jsonbin">("supabase");
+
+  // Supabase Fields
+  const [supabaseUrl, setSupabaseUrl] = useState(process.env.NEXT_PUBLIC_SUPABASE_URL || "");
+  const [supabaseKey, setSupabaseKey] = useState(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "");
+  const [supabaseTable, setSupabaseTable] = useState("portfolio_data");
+
+  // JSONBin Fields
+  const [jsonbinUrl, setJsonbinUrl] = useState("");
+  const [jsonbinKey, setJsonbinKey] = useState("");
+
   const [isCloudActive, setIsCloudActive] = useState(false);
-  const [cloudStatusMsg, setCloudStatusMsg] = useState("");
+  const [cloudStatusMsg, setCloudStatusMsg] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
 
   // Shortcut Ctrl + Shift + A or Ctrl + Alt + E
   useEffect(() => {
@@ -91,14 +102,20 @@ export default function AdminModal() {
   useEffect(() => {
     const conf = getCloudConfig();
     if (conf) {
-      setCloudProvider(conf.provider as any);
-      setCloudApiUrl(conf.apiUrl || "");
-      setCloudApiKey(conf.apiKey || "");
+      setCloudProvider(conf.provider === "jsonbin" ? "jsonbin" : "supabase");
+      if (conf.provider === "supabase") {
+        setSupabaseUrl(conf.apiUrl || "");
+        setSupabaseKey(conf.apiKey || "");
+        setSupabaseTable(conf.tableName || "portfolio_data");
+      } else {
+        setJsonbinUrl(conf.apiUrl || "");
+        setJsonbinKey(conf.apiKey || "");
+      }
       setIsCloudActive(!!conf.apiUrl);
     }
   }, []);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passwordInput) return;
 
@@ -113,15 +130,20 @@ export default function AdminModal() {
         setErrorMessage("Passwords do not match.");
         return;
       }
-      setAdminPassword(passwordInput);
-      loginAdmin(passwordInput);
-      setError(false);
-      setPasswordInput("");
-      setConfirmPassword("");
-      closeLoginModal();
-      alert("Custom Admin Password created successfully!");
+      const success = await loginAdmin(passwordInput);
+      if (success) {
+        setError(false);
+        setPasswordInput("");
+        setConfirmPassword("");
+        closeLoginModal();
+        alert("Admin Password saved & logged in successfully!");
+      } else {
+        setError(true);
+        setErrorMessage("Incorrect Admin Password or server validation failed.");
+      }
     } else {
-      if (loginAdmin(passwordInput)) {
+      const success = await loginAdmin(passwordInput);
+      if (success) {
         setError(false);
         setPasswordInput("");
         closeLoginModal();
@@ -176,21 +198,34 @@ export default function AdminModal() {
 
   const handleSaveCloudSetup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cloudApiUrl) {
-      alert("Please enter a valid Cloud Database / API URL.");
+
+    const config: CloudConfig =
+      cloudProvider === "supabase"
+        ? {
+            provider: "supabase",
+            apiUrl: supabaseUrl.trim(),
+            apiKey: supabaseKey.trim(),
+            tableName: supabaseTable.trim() || "portfolio_data",
+          }
+        : {
+            provider: "jsonbin",
+            apiUrl: jsonbinUrl.trim(),
+            apiKey: jsonbinKey.trim(),
+          };
+
+    setCloudStatusMsg({ type: "info", text: "Connecting & testing table access..." });
+
+    // Step 1: Test Connection & Table
+    const testResult = await testCloudConnection(config);
+
+    if (!testResult.success) {
+      setCloudStatusMsg({ type: "error", text: testResult.message });
       return;
     }
 
-    const config: CloudConfig = {
-      provider: cloudProvider,
-      apiUrl: cloudApiUrl.trim(),
-      apiKey: cloudApiKey.trim(),
-    };
+    // Step 2: Push current master payload to Cloud
+    setCloudStatusMsg({ type: "info", text: "Syncing portfolio data to cloud..." });
 
-    saveCloudConfig(config);
-    setCloudStatusMsg("Testing connection & syncing data to cloud...");
-
-    // Build current master payload
     const payload = {
       heroData,
       aboutData,
@@ -203,17 +238,18 @@ export default function AdminModal() {
       languagesList: languages,
     };
 
-    const success = await saveCloudPortfolioData(payload, config);
-    if (success) {
+    const saveSuccess = await saveCloudPortfolioData(payload, config);
+
+    if (saveSuccess) {
+      saveCloudConfig(config);
       setIsCloudActive(true);
-      setCloudStatusMsg("✓ Live Cloud Sync Active!");
+      setCloudStatusMsg({ type: "success", text: `✓ ${cloudProvider === "supabase" ? "Supabase" : "JSONBin"} Connected & Live Sync Active!` });
       alert(
-        "✓ Real-Time Cloud Database Connected!\n\nEvery edit you make in Admin Mode on any device will now instantly update live for ALL visitors on https://rahil-portfolio15.netlify.app/ in real time!"
+        `✓ ${cloudProvider === "supabase" ? "Supabase Database" : "JSONBin.io"} Connected Successfully!\n\nEvery edit you make in Admin Mode on any device will now instantly sync live for ALL visitors on https://rahil-portfolio15.netlify.app/ in real time!`
       );
       setShowCloudModal(false);
     } else {
-      setCloudStatusMsg("❌ Connection failed. Check API URL and Key.");
-      alert("Failed to connect to Cloud API. Please check your API URL and API Key.");
+      setCloudStatusMsg({ type: "error", text: "Connection test passed, but initial data push failed. Check table permissions/RLS policy." });
     }
   };
 
@@ -237,7 +273,7 @@ export default function AdminModal() {
                   ? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 shadow-md shadow-cyan-500/20"
                   : "bg-amber-500/20 border border-amber-500/50 text-amber-300"
               }`}
-              title="Connect free Cloud Database for instant live edits everywhere"
+              title="Connect Supabase or JSONBin Cloud Database for instant live edits everywhere"
             >
               <Cloud className="w-3.5 h-3.5 text-cyan-400" />
               {isCloudActive ? "Live Cloud Sync Active" : "Connect Cloud DB"}
@@ -367,7 +403,7 @@ export default function AdminModal() {
       {/* Cloud Database Setup Modal */}
       {showCloudModal && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="max-w-lg w-full p-6 rounded-3xl border border-cyan-500/40 bg-slate-900 shadow-2xl relative">
+          <div className="max-w-xl w-full p-6 rounded-3xl border border-cyan-500/40 bg-slate-900 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button
               onClick={() => setShowCloudModal(false)}
               className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1"
@@ -384,7 +420,7 @@ export default function AdminModal() {
                   Cloud Database Real-Time Sync
                 </h3>
                 <p className="text-xs text-neutral-400 font-mono">
-                  Connect a free database so your live edits appear for ALL visitors worldwide in real-time!
+                  Connect Supabase or JSONBin so your live edits appear for ALL visitors worldwide in real-time!
                 </p>
               </div>
             </div>
@@ -397,69 +433,126 @@ export default function AdminModal() {
                   onChange={(e) => setCloudProvider(e.target.value as any)}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-white/15 text-white focus:outline-none focus:border-cyan-500"
                 >
-                  <option value="jsonbin">JSONBin.io (Recommended - 1 Click Free API)</option>
-                  <option value="supabase">Supabase (Free PostgreSQL Database)</option>
-                  <option value="firebase">Firebase (Realtime Database)</option>
+                  <option value="supabase">Supabase (Free PostgreSQL & Realtime DB)</option>
+                  <option value="jsonbin">JSONBin.io (Free 1-Click Storage)</option>
                 </select>
               </div>
 
-              <div>
-                <label className="block text-neutral-300 mb-1 font-bold">
-                  {cloudProvider === "jsonbin"
-                    ? "JSONBin Bin API URL:"
-                    : cloudProvider === "supabase"
-                    ? "Supabase Table REST API URL:"
-                    : "Firebase Realtime DB URL:"}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={cloudApiUrl}
-                  onChange={(e) => setCloudApiUrl(e.target.value)}
-                  placeholder={
-                    cloudProvider === "jsonbin"
-                      ? "https://api.jsonbin.io/v3/b/YOUR_BIN_ID"
-                      : cloudProvider === "supabase"
-                      ? "https://YOUR_ID.supabase.co/rest/v1/portfolio"
-                      : "https://YOUR_ID.firebaseio.com/portfolio.json"
-                  }
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
+              {/* SUPABASE FIELDS */}
+              {cloudProvider === "supabase" && (
+                <div className="space-y-3 p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/20">
+                  <div>
+                    <label className="block text-cyan-300 mb-1 font-bold">Supabase Project URL:</label>
+                    <input
+                      type="text"
+                      required
+                      value={supabaseUrl}
+                      onChange={(e) => setSupabaseUrl(e.target.value)}
+                      placeholder="https://xxxxxxxxxxxx.supabase.co"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-neutral-300 mb-1 font-bold">
-                  API Key / Secret Token (Optional if public write):
-                </label>
-                <input
-                  type="password"
-                  value={cloudApiKey}
-                  onChange={(e) => setCloudApiKey(e.target.value)}
-                  placeholder="Paste Master Key / anon apikey token"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
+                  <div>
+                    <label className="block text-cyan-300 mb-1 font-bold">
+                      Supabase Publishable / Anon Key (public):
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={supabaseKey}
+                      onChange={(e) => setSupabaseKey(e.target.value)}
+                      placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-cyan-500"
+                    />
+                    <p className="text-[10px] text-neutral-400 mt-1">
+                      Use only public publishable/anon key. Never expose service_role key.
+                    </p>
+                  </div>
 
-              {cloudStatusMsg && (
-                <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs">
-                  {cloudStatusMsg}
+                  <div>
+                    <label className="block text-cyan-300 mb-1 font-bold">Table Name:</label>
+                    <input
+                      type="text"
+                      required
+                      value={supabaseTable}
+                      onChange={(e) => setSupabaseTable(e.target.value)}
+                      placeholder="portfolio_data"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-900/90 border border-white/10 text-[11px] text-neutral-300 space-y-1.5">
+                    <p className="font-bold text-cyan-400 flex items-center gap-1">
+                      <Database className="w-3.5 h-3.5" /> Supabase Database SQL Setup:
+                    </p>
+                    <p className="text-neutral-400">Run this SQL query in your Supabase SQL Editor:</p>
+                    <pre className="p-2 rounded bg-black/60 text-[10px] font-mono text-emerald-300 overflow-x-auto select-all">
+{`CREATE TABLE portfolio_data (
+  id INT PRIMARY KEY DEFAULT 1,
+  payload JSONB NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE portfolio_data ENABLE ROW LEVEL SECURITY;
+
+-- 1. Allow public read access for visitors worldwide
+CREATE POLICY "Public Read Portfolio" ON portfolio_data FOR SELECT USING (true);
+
+-- 2. Secure Writes: Handled exclusively by Server API (/api/portfolio-sync)
+-- using SUPABASE_SERVICE_ROLE_KEY which bypasses RLS safely.
+-- NO public anon INSERT or UPDATE policy is enabled!`}
+                    </pre>
+                  </div>
                 </div>
               )}
 
-              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 space-y-1.5 text-[11px] text-neutral-400">
-                <p className="text-white font-bold flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> Free Setup Instructions:
-                </p>
-                <p>
-                  1. Create a free bin on <a href="https://jsonbin.io" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline">jsonbin.io</a> or table on Supabase/Firebase.
-                </p>
-                <p>
-                  2. Paste your Bin URL and Master Key above and click <strong>Connect & Sync</strong>.
-                </p>
-                <p>
-                  3. Any edit you make in Admin mode will instantly sync live to every visitor on Netlify!
-                </p>
-              </div>
+              {/* JSONBIN FIELDS */}
+              {cloudProvider === "jsonbin" && (
+                <div className="space-y-3 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
+                  <div>
+                    <label className="block text-emerald-300 mb-1 font-bold">JSONBin Bin API URL:</label>
+                    <input
+                      type="text"
+                      required
+                      value={jsonbinUrl}
+                      onChange={(e) => setJsonbinUrl(e.target.value)}
+                      placeholder="https://api.jsonbin.io/v3/b/YOUR_BIN_ID"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-emerald-300 mb-1 font-bold">API Key / Master Key:</label>
+                    <input
+                      type="password"
+                      value={jsonbinKey}
+                      onChange={(e) => setJsonbinKey(e.target.value)}
+                      placeholder="Paste $2a$10$... Master Key"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {cloudStatusMsg && (
+                <div
+                  className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
+                    cloudStatusMsg.type === "success"
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                      : cloudStatusMsg.type === "error"
+                      ? "bg-rose-500/10 border-rose-500/30 text-rose-300"
+                      : "bg-cyan-500/10 border-cyan-500/30 text-cyan-300"
+                  }`}
+                >
+                  {cloudStatusMsg.type === "error" ? (
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  ) : (
+                    <Check className="w-4 h-4 flex-shrink-0" />
+                  )}
+                  <span>{cloudStatusMsg.text}</span>
+                </div>
+              )}
 
               <div className="flex justify-end gap-3 pt-2">
                 <button

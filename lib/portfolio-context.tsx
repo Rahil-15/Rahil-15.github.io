@@ -12,6 +12,7 @@ import {
   saveCloudPortfolioData,
   saveCloudConfig,
   getCloudConfig,
+  subscribeToRealtimeCloudUpdates,
   CloudConfig,
 } from "@/lib/cloud-storage";
 
@@ -72,7 +73,7 @@ interface PortfolioContextType {
   isLoginModalOpen: boolean;
   openLoginModal: () => void;
   closeLoginModal: () => void;
-  loginAdmin: (password: string) => boolean;
+  loginAdmin: (password: string) => Promise<boolean>;
   setAdminPassword: (newPassword: string) => void;
   logoutAdmin: () => void;
   
@@ -177,6 +178,19 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     initStorage();
   }, []);
 
+  // Subscribe to Realtime Cloud Database Updates (Supabase Realtime)
+  useEffect(() => {
+    const unsub = subscribeToRealtimeCloudUpdates((newPayload) => {
+      if (newPayload) {
+        applyPayload(newPayload);
+        savePortfolioData(newPayload);
+      }
+    });
+    return () => {
+      if (unsub) unsub();
+    };
+  }, []);
+
   const saveData = (data: any) => {
     savePortfolioData(data);
     saveCloudPortfolioData(data);
@@ -202,18 +216,39 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setCustomPasswordState(newPassword);
   };
 
-  const loginAdmin = (passwordInput: string) => {
-    if (!customPassword) {
-      // First time setup - store password directly!
-      setAdminPassword(passwordInput);
-      setIsAdmin(true);
-      return true;
+  const loginAdmin = async (passwordInput: string): Promise<boolean> => {
+    // 1. Verify password against server API (/api/portfolio-sync) if available
+    try {
+      const res = await fetch("/api/portfolio-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "verify-password",
+          password: passwordInput,
+        }),
+      });
+
+      if (res.status === 401) {
+        // Server explicitly rejected the password
+        return false;
+      }
+    } catch (e) {
+      console.warn("Server password check skipped (offline or static build)", e);
     }
-    if (passwordInput === customPassword) {
-      setIsAdmin(true);
-      return true;
+
+    // 2. If client password already set and server check didn't fail, update/verify local state
+    if (customPassword && passwordInput !== customPassword) {
+      // Local fallback check
+      const savedPass = localStorage.getItem(PASSWORD_STORAGE_KEY);
+      if (savedPass && passwordInput !== savedPass) {
+        // If local check also fails, reject
+        return false;
+      }
     }
-    return false;
+
+    setAdminPassword(passwordInput);
+    setIsAdmin(true);
+    return true;
   };
 
   const logoutAdmin = () => {
