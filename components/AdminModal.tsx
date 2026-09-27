@@ -238,9 +238,9 @@ export default function AdminModal() {
       languagesList: languages,
     };
 
-    const saveSuccess = await saveCloudPortfolioData(payload, config);
+    const saveResult = await saveCloudPortfolioData(payload, config);
 
-    if (saveSuccess) {
+    if (saveResult.success) {
       saveCloudConfig(config);
       setIsCloudActive(true);
       setCloudStatusMsg({ type: "success", text: `✓ ${cloudProvider === "supabase" ? "Supabase" : "JSONBin"} Connected & Live Sync Active!` });
@@ -249,7 +249,7 @@ export default function AdminModal() {
       );
       setShowCloudModal(false);
     } else {
-      setCloudStatusMsg({ type: "error", text: "Connection test passed, but initial data push failed. Check table permissions/RLS policy." });
+      setCloudStatusMsg({ type: "error", text: saveResult.message || "Initial data push failed." });
     }
   };
 

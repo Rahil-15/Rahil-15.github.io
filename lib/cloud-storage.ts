@@ -91,9 +91,12 @@ export async function fetchCloudPortfolioData(customConfig?: CloudConfig): Promi
 }
 
 // Push live portfolio updates to Cloud Database in real-time
-export async function saveCloudPortfolioData(data: any, customConfig?: CloudConfig): Promise<boolean> {
+export async function saveCloudPortfolioData(
+  data: any,
+  customConfig?: CloudConfig
+): Promise<{ success: boolean; message: string }> {
   const config = customConfig || getCloudConfig();
-  if (!config) return false;
+  if (!config) return { success: false, message: "No Cloud Database configured." };
 
   if (config.provider === "supabase") {
     return await saveSupabasePortfolioData(data, {
@@ -104,7 +107,7 @@ export async function saveCloudPortfolioData(data: any, customConfig?: CloudConf
   }
 
   // JSONBin implementation
-  if (!config.apiUrl) return false;
+  if (!config.apiUrl) return { success: false, message: "Missing JSONBin API URL." };
   try {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -119,10 +122,13 @@ export async function saveCloudPortfolioData(data: any, customConfig?: CloudConf
       body: JSON.stringify(data),
     });
 
-    return res.ok;
-  } catch (e) {
+    if (res.ok) {
+      return { success: true, message: "✓ Connected & Saved to JSONBin.io successfully!" };
+    }
+    return { success: false, message: `JSONBin Save Error (${res.status}): ${res.statusText}` };
+  } catch (e: any) {
     console.error("JSONBin save failed", e);
-    return false;
+    return { success: false, message: `JSONBin Save Error: ${e.message || e}` };
   }
 }
 

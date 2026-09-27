@@ -42,14 +42,13 @@ export async function testSupabaseConnection(config: SupabaseConfig): Promise<{ 
       return { success: false, message: "Supabase Publishable/Anon Key is required." };
     }
 
+    // 1. Test client-side SELECT query (verifying table exists & public SELECT policy works)
     const client = getSupabaseClient(config);
     if (!client) {
       return { success: false, message: "Failed to initialize Supabase client." };
     }
 
     const tableName = config.tableName || DEFAULT_TABLE_NAME;
-
-    // Test query table
     const { data, error } = await client.from(tableName).select("id, payload").limit(1);
 
     if (error) {
@@ -59,10 +58,40 @@ export async function testSupabaseConnection(config: SupabaseConfig): Promise<{ 
           message: `Table '${tableName}' does not exist in your Supabase database. Please create it using the SQL editor.`,
         };
       }
-      return { success: false, message: `Supabase Error: ${error.message}` };
+      return { success: false, message: `Supabase Table Error: ${error.message}` };
     }
 
-    return { success: true, message: `✓ Connected to Supabase table '${tableName}' successfully!` };
+    // 2. Test server API route (/api/portfolio-sync) service role write access
+    try {
+      const savedPassword =
+        typeof window !== "undefined"
+          ? localStorage.getItem("rahil_portfolio_custom_password") || ""
+          : "";
+
+      const res = await fetch("/api/portfolio-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "test",
+          password: savedPassword,
+          customSupabaseUrl: config.url,
+          customSupabaseKey: config.anonKey,
+          customTableName: config.tableName || DEFAULT_TABLE_NAME,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        return {
+          success: false,
+          message: json.message || `Server API Error (${res.status}): Service role write check failed.`,
+        };
+      }
+    } catch (e: any) {
+      console.warn("Server API test warning:", e);
+    }
+
+    return { success: true, message: `✓ Connected to Supabase table '${tableName}' & verified Server API access!` };
   } catch (e: any) {
     return { success: false, message: `Connection Error: ${e.message || e}` };
   }
@@ -96,11 +125,12 @@ export async function fetchSupabasePortfolioData(customConfig?: Partial<Supabase
 export async function saveSupabasePortfolioData(
   payload: any,
   customConfig?: Partial<SupabaseConfig>
-): Promise<boolean> {
+): Promise<{ success: boolean; message: string }> {
   const config = getSupabaseConfig(customConfig);
-  if (!config) return false;
+  if (!config) {
+    return { success: false, message: "Missing Supabase configuration (URL or Publishable Key)." };
+  }
 
-  // 1. First, attempt secure server-side write via /api/portfolio-sync
   try {
     const savedPassword =
       typeof window !== "undefined"
@@ -119,37 +149,21 @@ export async function saveSupabasePortfolioData(
       }),
     });
 
-    if (res.ok) {
-      const result = await res.json();
-      if (result.success) return true;
+    const result = await res.json();
+    if (res.ok && result.success) {
+      return { success: true, message: result.message || "✓ Portfolio updated securely!" };
     }
-  } catch (e) {
-    console.warn("Server API write failed, attempting fallback...", e);
-  }
 
-  // 2. Fallback to direct client-side upsert
-  const client = getSupabaseClient(config);
-  if (!client) return false;
-
-  try {
-    const tableName = config.tableName || DEFAULT_TABLE_NAME;
-    const { error } = await client.from(tableName).upsert(
-      {
-        id: 1,
-        payload,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "id" }
-    );
-
-    if (error) {
-      console.error("Supabase upsert error:", error.message);
-      return false;
-    }
-    return true;
-  } catch (e) {
-    console.error("Supabase save failed:", e);
-    return false;
+    return {
+      success: false,
+      message: result.message || `Server API Error (${res.status}): Write request failed.`,
+    };
+  } catch (e: any) {
+    console.error("Server API write request failed:", e);
+    return {
+      success: false,
+      message: `Network/API Error: Could not reach /api/portfolio-sync (${e.message || e})`,
+    };
   }
 }
 

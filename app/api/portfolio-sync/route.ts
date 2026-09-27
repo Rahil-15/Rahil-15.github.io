@@ -10,19 +10,12 @@ export async function POST(request: Request) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || customSupabaseUrl;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || customSupabaseKey;
     // Server-only secret key (bypasses RLS for secure admin writes)
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || anonKey;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
     const tableName = customTableName || "portfolio_data";
 
     if (!supabaseUrl || !supabaseUrl.startsWith("https://")) {
       return NextResponse.json(
         { success: false, message: "Invalid or missing Supabase Project URL." },
-        { status: 400 }
-      );
-    }
-
-    if (!serviceRoleKey) {
-      return NextResponse.json(
-        { success: false, message: "Missing Supabase Key." },
         { status: 400 }
       );
     }
@@ -43,6 +36,18 @@ export async function POST(request: Request) {
         message: "Admin password verified successfully.",
         isPasswordConfigured: !!envAdminPassword,
       });
+    }
+
+    // 3. Ensure SUPABASE_SERVICE_ROLE_KEY is present for server-side writes
+    if (!serviceRoleKey) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Missing SUPABASE_SERVICE_ROLE_KEY in server environment variables. Please add SUPABASE_SERVICE_ROLE_KEY in your Netlify site configuration to enable secure server-side portfolio writes.",
+        },
+        { status: 500 }
+      );
     }
 
     // Initialize server-side Supabase client
