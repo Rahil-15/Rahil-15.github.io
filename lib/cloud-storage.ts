@@ -101,17 +101,22 @@ export async function fetchCloudPortfolioData(customConfig?: CloudConfig): Promi
 // Push live portfolio updates to Cloud Database in real-time
 export async function saveCloudPortfolioData(
   data: any,
-  customConfig?: CloudConfig
+  customConfig?: CloudConfig,
+  overridePassword?: string
 ): Promise<{ success: boolean; message: string }> {
   const config = customConfig || getCloudConfig();
   if (!config) return { success: false, message: "No Cloud Database configured." };
 
   if (config.provider === "supabase") {
-    return await saveSupabasePortfolioData(data, {
-      url: config.apiUrl,
-      anonKey: config.apiKey,
-      tableName: config.tableName || "portfolio_data",
-    });
+    return await saveSupabasePortfolioData(
+      data,
+      {
+        url: config.apiUrl,
+        anonKey: config.apiKey,
+        tableName: config.tableName || "portfolio_data",
+      },
+      overridePassword
+    );
   }
 
   // JSONBin implementation

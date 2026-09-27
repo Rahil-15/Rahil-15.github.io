@@ -69,12 +69,11 @@ const defaultLanguagesList = portfolioDefaultJson.languagesList as string[];
 
 interface PortfolioContextType {
   isAdmin: boolean;
-  hasCustomPassword: boolean;
   isLoginModalOpen: boolean;
   openLoginModal: () => void;
   closeLoginModal: () => void;
   loginAdmin: (password: string) => Promise<boolean>;
-  setAdminPassword: (newPassword: string) => void;
+  changeAdminPassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   logoutAdmin: () => void;
   
   heroData: HeroData;
@@ -126,7 +125,7 @@ const PASSWORD_STORAGE_KEY = "rahil_portfolio_custom_password";
 
 export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [customPassword, setCustomPasswordState] = useState<string | null>(null);
+  const [adminAuthPassword, setAdminAuthPassword] = useState<string | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
 
   const [heroData, setHeroData] = useState<HeroData>(defaultHeroData);
@@ -156,8 +155,14 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     const initStorage = async () => {
       try {
-        const savedPassword = localStorage.getItem(PASSWORD_STORAGE_KEY);
-        if (savedPassword) setCustomPasswordState(savedPassword);
+        // Clean legacy browser-local password if present
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("rahil_portfolio_custom_password");
+          const sessionActive = sessionStorage.getItem("rahil_portfolio_admin_active") === "true";
+          if (sessionActive) {
+            setIsAdmin(true);
+          }
+        }
 
         // 1. Fast local IndexedDB load
         const loadedData = await loadPortfolioData();
@@ -193,7 +198,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const saveData = (data: any) => {
     savePortfolioData(data);
-    saveCloudPortfolioData(data);
+    saveCloudPortfolioData(data, undefined, adminAuthPassword || undefined);
   };
 
   const currentPayload = () => ({
@@ -211,13 +216,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const openLoginModal = () => setIsLoginModalOpen(true);
   const closeLoginModal = () => setIsLoginModalOpen(false);
 
-  const setAdminPassword = (newPassword: string) => {
-    localStorage.setItem(PASSWORD_STORAGE_KEY, newPassword);
-    setCustomPasswordState(newPassword);
-  };
-
   const loginAdmin = async (passwordInput: string): Promise<boolean> => {
-    // 1. Verify password against server API (/api/portfolio-sync) if available
     try {
       const res = await fetch("/api/portfolio-sync", {
         method: "POST",
@@ -228,31 +227,54 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }),
       });
 
-      if (res.status === 401) {
-        // Server explicitly rejected the password
-        return false;
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setIsAdmin(true);
+        setAdminAuthPassword(passwordInput);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("rahil_portfolio_admin_active", "true");
+        }
+        return true;
       }
+      return false;
     } catch (e) {
-      console.warn("Server password check skipped (offline or static build)", e);
+      console.error("Failed to verify admin password:", e);
+      return false;
     }
+  };
 
-    // 2. If client password already set and server check didn't fail, update/verify local state
-    if (customPassword && passwordInput !== customPassword) {
-      // Local fallback check
-      const savedPass = localStorage.getItem(PASSWORD_STORAGE_KEY);
-      if (savedPass && passwordInput !== savedPass) {
-        // If local check also fails, reject
-        return false;
+  const changeAdminPassword = async (
+    currentPassword: string,
+    newPassword: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const res = await fetch("/api/portfolio-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "change-password",
+          currentPassword,
+          newPassword,
+        }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setAdminAuthPassword(newPassword);
+        return { success: true, message: json.message || "✓ Admin password updated globally!" };
       }
+      return { success: false, message: json.message || "Failed to change admin password." };
+    } catch (e: any) {
+      return { success: false, message: `Network error: ${e.message || e}` };
     }
-
-    setAdminPassword(passwordInput);
-    setIsAdmin(true);
-    return true;
   };
 
   const logoutAdmin = () => {
     setIsAdmin(false);
+    setAdminAuthPassword(null);
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("rahil_portfolio_admin_active");
+    }
   };
 
   const updateHeroData = (data: Partial<HeroData>) => {
@@ -413,12 +435,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     <PortfolioContext.Provider
       value={{
         isAdmin,
-        hasCustomPassword: !!customPassword,
         isLoginModalOpen,
         openLoginModal,
         closeLoginModal,
         loginAdmin,
-        setAdminPassword,
+        changeAdminPassword,
         logoutAdmin,
         heroData,
         updateHeroData,

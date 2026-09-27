@@ -151,7 +151,8 @@ export async function fetchSupabasePortfolioData(customConfig?: Partial<Supabase
 // Push live portfolio updates to Supabase (via secure Server API)
 export async function saveSupabasePortfolioData(
   payload: any,
-  customConfig?: Partial<SupabaseConfig>
+  customConfig?: Partial<SupabaseConfig>,
+  overridePassword?: string
 ): Promise<{ success: boolean; message: string }> {
   const config = getSupabaseConfig(customConfig);
   if (!config) {
@@ -159,17 +160,14 @@ export async function saveSupabasePortfolioData(
   }
 
   try {
-    const savedPassword =
-      typeof window !== "undefined"
-        ? localStorage.getItem("rahil_portfolio_custom_password") || ""
-        : "";
+    const passwordToSend = overridePassword || "";
 
     const res = await fetch("/api/portfolio-sync", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         payload,
-        password: savedPassword,
+        password: passwordToSend,
         customSupabaseUrl: config.url,
         customSupabaseKey: config.anonKey,
         customTableName: config.tableName || DEFAULT_TABLE_NAME,

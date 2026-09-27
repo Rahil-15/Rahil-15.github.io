@@ -32,9 +32,8 @@ import { normalizeSupabaseUrl } from "@/lib/supabase";
 export default function AdminModal() {
   const {
     isAdmin,
-    hasCustomPassword,
     loginAdmin,
-    setAdminPassword,
+    changeAdminPassword,
     logoutAdmin,
     resetToDefaults,
     exportDataJSON,
@@ -54,13 +53,13 @@ export default function AdminModal() {
   } = usePortfolio();
 
   const [passwordInput, setPasswordInput] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importJsonText, setImportJsonText] = useState("");
 
+  const [currentPassInput, setCurrentPassInput] = useState("");
   const [newPassInput, setNewPassInput] = useState("");
   const [confirmNewPass, setConfirmNewPass] = useState("");
 
@@ -120,56 +119,42 @@ export default function AdminModal() {
     e.preventDefault();
     if (!passwordInput) return;
 
-    if (!hasCustomPassword) {
-      if (passwordInput.length < 4) {
-        setError(true);
-        setErrorMessage("Password must be at least 4 characters long.");
-        return;
-      }
-      if (passwordInput !== confirmPassword) {
-        setError(true);
-        setErrorMessage("Passwords do not match.");
-        return;
-      }
-      const success = await loginAdmin(passwordInput);
-      if (success) {
-        setError(false);
-        setPasswordInput("");
-        setConfirmPassword("");
-        closeLoginModal();
-        alert("Admin Password saved & logged in successfully!");
-      } else {
-        setError(true);
-        setErrorMessage("Incorrect Admin Password or server validation failed.");
-      }
+    const success = await loginAdmin(passwordInput);
+    if (success) {
+      setError(false);
+      setPasswordInput("");
+      closeLoginModal();
     } else {
-      const success = await loginAdmin(passwordInput);
-      if (success) {
-        setError(false);
-        setPasswordInput("");
-        closeLoginModal();
-      } else {
-        setError(true);
-        setErrorMessage("Incorrect Admin Password.");
-      }
+      setError(true);
+      setErrorMessage("Incorrect Admin Password.");
     }
   };
 
-  const handleChangePasswordSubmit = (e: React.FormEvent) => {
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentPassInput) {
+      alert("Please enter your current admin password.");
+      return;
+    }
     if (newPassInput.length < 4) {
-      alert("Password must be at least 4 characters long.");
+      alert("New password must be at least 4 characters long.");
       return;
     }
     if (newPassInput !== confirmNewPass) {
-      alert("Passwords do not match.");
+      alert("New passwords do not match.");
       return;
     }
-    setAdminPassword(newPassInput);
-    setShowChangePasswordModal(false);
-    setNewPassInput("");
-    setConfirmNewPass("");
-    alert("Admin password updated successfully!");
+
+    const res = await changeAdminPassword(currentPassInput, newPassInput);
+    if (res.success) {
+      alert(res.message);
+      setShowChangePasswordModal(false);
+      setCurrentPassInput("");
+      setNewPassInput("");
+      setConfirmNewPass("");
+    } else {
+      alert(res.message || "Failed to change admin password.");
+    }
   };
 
   const handleExport = () => {
@@ -322,7 +307,7 @@ export default function AdminModal() {
         </div>
       )}
 
-      {/* Admin Login / Setup Password Modal */}
+      {/* Admin Login Modal */}
       {isLoginModalOpen && !isAdmin && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="max-w-md w-full p-6 rounded-3xl border border-emerald-500/30 bg-slate-900 shadow-2xl relative">
@@ -338,46 +323,26 @@ export default function AdminModal() {
                 <Shield className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white">
-                  {hasCustomPassword ? "Portfolio Admin Login" : "Create Secret Admin Password"}
-                </h3>
+                <h3 className="text-xl font-bold text-white">Portfolio Admin Login</h3>
                 <p className="text-xs text-neutral-400 font-mono">
-                  {hasCustomPassword
-                    ? "Enter your custom secure password"
-                    : "Create a private security password for your portfolio"}
+                  Enter your global admin password to unlock edit mode
                 </p>
               </div>
             </div>
 
             <form onSubmit={handleLoginSubmit} className="space-y-4 text-xs font-mono">
               <div>
-                <label className="block text-neutral-300 mb-1.5">
-                  {hasCustomPassword ? "Enter Admin Password:" : "Create Secret Password:"}
-                </label>
+                <label className="block text-neutral-300 mb-1.5">Enter Admin Password:</label>
                 <input
                   type="password"
                   required
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  placeholder={hasCustomPassword ? "Enter password" : "Min 4 characters"}
+                  placeholder="Enter admin password"
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-emerald-500"
                   autoFocus
                 />
               </div>
-
-              {!hasCustomPassword && (
-                <div>
-                  <label className="block text-neutral-300 mb-1.5">Confirm Secret Password:</label>
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm password"
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-              )}
 
               {error && <p className="text-rose-400 text-xs">{errorMessage}</p>}
 
@@ -393,7 +358,7 @@ export default function AdminModal() {
                   type="submit"
                   className="px-5 py-2.5 font-bold rounded-xl bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20"
                 >
-                  {hasCustomPassword ? "Unlock Admin Mode" : "Save Password & Login"}
+                  Unlock Admin Mode
                 </button>
               </div>
             </form>
@@ -598,6 +563,19 @@ CREATE POLICY "Public Read Portfolio" ON portfolio_data FOR SELECT USING (true);
 
             <form onSubmit={handleChangePasswordSubmit} className="space-y-4 text-xs font-mono">
               <div>
+                <label className="block text-neutral-300 mb-1.5">Current Admin Password:</label>
+                <input
+                  type="password"
+                  required
+                  value={currentPassInput}
+                  onChange={(e) => setCurrentPassInput(e.target.value)}
+                  placeholder="Enter current password"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-cyan-500"
+                  autoFocus
+                />
+              </div>
+
+              <div>
                 <label className="block text-neutral-300 mb-1.5">New Admin Password:</label>
                 <input
                   type="password"
@@ -633,7 +611,7 @@ CREATE POLICY "Public Read Portfolio" ON portfolio_data FOR SELECT USING (true);
                   type="submit"
                   className="px-5 py-2.5 font-bold rounded-xl bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/20"
                 >
-                  Update Password
+                  Update Global Password
                 </button>
               </div>
             </form>
