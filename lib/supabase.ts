@@ -8,12 +8,37 @@ export interface SupabaseConfig {
 
 const DEFAULT_TABLE_NAME = "portfolio_data";
 
+// Helper to normalize Supabase URL to base origin (https://<project-ref>.supabase.co)
+export function normalizeSupabaseUrl(rawUrl: string): string {
+  if (!rawUrl) return "";
+  let url = rawUrl.trim();
+
+  // Ensure scheme
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    url = "https://" + url;
+  } else if (url.startsWith("http://")) {
+    url = url.replace("http://", "https://");
+  }
+
+  try {
+    const parsed = new URL(url);
+    // Retain origin only (e.g., https://xyz.supabase.co), stripping /rest/v1/, etc.
+    return parsed.origin;
+  } catch (e) {
+    let cleaned = url.split("?")[0].split("#")[0];
+    cleaned = cleaned.replace(/\/(rest|auth|storage)(\/v\d+)?(\/.*)?$/i, "");
+    cleaned = cleaned.replace(/\/+$/, "");
+    return cleaned;
+  }
+}
+
 // Helper to get environment or stored Supabase config
 export function getSupabaseConfig(customConfig?: Partial<SupabaseConfig>): SupabaseConfig | null {
   const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
   const envKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
 
-  const url = customConfig?.url || envUrl;
+  const rawUrl = customConfig?.url || envUrl;
+  const url = normalizeSupabaseUrl(rawUrl);
   const anonKey = customConfig?.anonKey || envKey;
   const tableName = customConfig?.tableName || DEFAULT_TABLE_NAME;
 
@@ -24,8 +49,9 @@ export function getSupabaseConfig(customConfig?: Partial<SupabaseConfig>): Supab
 // Create a client-side Supabase client instance
 export function getSupabaseClient(config: SupabaseConfig): SupabaseClient | null {
   try {
-    if (!config.url || !config.anonKey) return null;
-    return createClient(config.url, config.anonKey);
+    const cleanUrl = normalizeSupabaseUrl(config.url);
+    if (!cleanUrl || !config.anonKey) return null;
+    return createClient(cleanUrl, config.anonKey);
   } catch (e) {
     console.error("Failed to initialize Supabase client", e);
     return null;
@@ -35,7 +61,8 @@ export function getSupabaseClient(config: SupabaseConfig): SupabaseClient | null
 // Test Supabase connection & table presence
 export async function testSupabaseConnection(config: SupabaseConfig): Promise<{ success: boolean; message: string }> {
   try {
-    if (!config.url || !config.url.startsWith("https://")) {
+    const cleanUrl = normalizeSupabaseUrl(config.url);
+    if (!cleanUrl || !cleanUrl.startsWith("https://")) {
       return { success: false, message: "Invalid Supabase Project URL. Must start with https://" };
     }
     if (!config.anonKey) {

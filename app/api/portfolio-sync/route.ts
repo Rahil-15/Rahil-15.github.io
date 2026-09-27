@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { normalizeSupabaseUrl } from "@/lib/supabase";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { payload, action, password, customSupabaseUrl, customSupabaseKey, customTableName } = body;
 
-    // 1. Resolve Supabase Project URL & Keys
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || customSupabaseUrl;
+    // 1. Resolve & Normalize Supabase Project URL & Keys
+    const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || customSupabaseUrl || "";
+    const supabaseUrl = normalizeSupabaseUrl(rawSupabaseUrl);
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || customSupabaseKey;
     // Server-only secret key (bypasses RLS for secure admin writes)
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;

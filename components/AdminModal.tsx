@@ -27,6 +27,7 @@ import {
   testCloudConnection,
   CloudConfig,
 } from "@/lib/cloud-storage";
+import { normalizeSupabaseUrl } from "@/lib/supabase";
 
 export default function AdminModal() {
   const {
@@ -203,7 +204,7 @@ export default function AdminModal() {
       cloudProvider === "supabase"
         ? {
             provider: "supabase",
-            apiUrl: supabaseUrl.trim(),
+            apiUrl: normalizeSupabaseUrl(supabaseUrl),
             apiKey: supabaseKey.trim(),
             tableName: supabaseTable.trim() || "portfolio_data",
           }

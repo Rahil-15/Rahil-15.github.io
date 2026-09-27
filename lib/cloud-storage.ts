@@ -6,6 +6,7 @@ import {
   saveSupabasePortfolioData,
   subscribeSupabaseRealtime,
   testSupabaseConnection,
+  normalizeSupabaseUrl,
 } from "./supabase";
 
 const CLOUD_STORAGE_KEY = "rahil_portfolio_cloud_config";
@@ -26,6 +27,9 @@ export function getCloudConfig(): CloudConfig | null {
     const saved = localStorage.getItem(CLOUD_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
+      if (parsed.provider === "supabase" && parsed.apiUrl) {
+        parsed.apiUrl = normalizeSupabaseUrl(parsed.apiUrl);
+      }
       if (parsed.apiUrl || parsed.provider === "supabase") return parsed;
     }
   } catch (e) {
@@ -39,7 +43,7 @@ export function getCloudConfig(): CloudConfig | null {
   if (envSupabaseUrl && envSupabaseKey) {
     return {
       provider: "supabase",
-      apiUrl: envSupabaseUrl,
+      apiUrl: normalizeSupabaseUrl(envSupabaseUrl),
       apiKey: envSupabaseKey,
       tableName: "portfolio_data",
     };
@@ -50,7 +54,11 @@ export function getCloudConfig(): CloudConfig | null {
 
 export function saveCloudConfig(config: CloudConfig) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(CLOUD_STORAGE_KEY, JSON.stringify(config));
+  const cleanedConfig = { ...config };
+  if (cleanedConfig.provider === "supabase" && cleanedConfig.apiUrl) {
+    cleanedConfig.apiUrl = normalizeSupabaseUrl(cleanedConfig.apiUrl);
+  }
+  localStorage.setItem(CLOUD_STORAGE_KEY, JSON.stringify(cleanedConfig));
 }
 
 // Fetch live master portfolio data from Cloud Database
