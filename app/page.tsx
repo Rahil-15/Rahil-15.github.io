@@ -4,6 +4,7 @@ import Projects from "@/components/Projects";
 import Focus from "@/components/Focus";
 import Experience from "@/components/Experience";
 import Skills from "@/components/Skills";
+import Certifications from "@/components/Certifications";
 import Journey from "@/components/Journey";
 import Achievements from "@/components/Achievements";
 import Contact from "@/components/Contact";
@@ -17,6 +18,7 @@ export default function Home() {
       <Focus />
       <Experience />
       <Skills />
+      <Certifications />
       <Journey />
       <Achievements />
       <Contact />

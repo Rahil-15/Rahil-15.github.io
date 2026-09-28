@@ -1,19 +1,22 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { fadeInUp } from "@/lib/animations";
 import AvailabilityBadge from "./AvailabilityBadge";
-import { Mail, ArrowRight, Sparkles, Edit2, Check, X, Camera, Upload, Trash2 } from "lucide-react";
+import { Mail, ArrowRight, Sparkles, Edit2, Check, X, Camera, Upload, Trash2, FileText, ExternalLink, Download, ChevronDown } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/SocialIcons";
 import { usePortfolio } from "@/lib/portfolio-context";
 import { useState, useRef } from "react";
 import PhotoCropModal from "./PhotoCropModal";
 
 export default function Hero() {
-  const { heroData, updateHeroData, isAdmin, openLoginModal } = usePortfolio();
+  const { heroData, updateHeroData, resumeData, isAdmin, openLoginModal } = usePortfolio();
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState(heroData);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Resume Popover Dropdown state
+  const [showResumeMenu, setShowResumeMenu] = useState(false);
 
   // Photo Cropper Studio State
   const [rawImageForCrop, setRawImageForCrop] = useState<string | null>(null);
@@ -55,7 +58,6 @@ export default function Hero() {
       const reader = new FileReader();
       reader.onload = () => {
         const rawUrl = reader.result as string;
-        // Open Crop & Adjust Modal studio
         setRawImageForCrop(rawUrl);
       };
       reader.readAsDataURL(file);
@@ -75,6 +77,9 @@ export default function Hero() {
     updateHeroData(form);
     setIsEditing(false);
   };
+
+  const resumeUrl = resumeData?.url || "/Mohammadrahil_Nasardi_Resume.pdf";
+  const resumeFileName = resumeData?.fileName || "Mohammadrahil_Nasardi_Resume.pdf";
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center pt-28 pb-16 overflow-hidden">
@@ -257,7 +262,7 @@ export default function Hero() {
             ) : (
               <>
                 <motion.h1 variants={fadeInUp} className="text-4xl sm:text-5xl md:text-6xl font-heading font-extrabold text-white tracking-tight leading-[1.15] mb-6">
-                  Hi, I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400">{heroData.name}</span>
+                  Hi, I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400">Mohammadrahil Nasardi</span>
                 </motion.h1>
 
                 <motion.p variants={fadeInUp} className="text-lg md:text-xl text-neutral-300 font-medium mb-4">
@@ -268,7 +273,8 @@ export default function Hero() {
                   {heroData.tagline}
                 </motion.p>
 
-                <motion.div variants={fadeInUp} className="flex flex-wrap gap-4 items-center mb-6">
+                {/* Primary Actions Grid */}
+                <motion.div variants={fadeInUp} className="flex flex-wrap gap-4 items-center mb-6 relative">
                   <a
                     href="#projects"
                     className="inline-flex items-center gap-2 px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30"
@@ -276,9 +282,60 @@ export default function Hero() {
                     View Projects
                     <ArrowRight className="w-4 h-4" />
                   </a>
+
+                  {/* Clean Resume Control Popover */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowResumeMenu(!showResumeMenu)}
+                      className="inline-flex items-center gap-2 px-5 py-3.5 border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 font-semibold rounded-xl hover:bg-emerald-500/20 transition-all shadow-lg"
+                    >
+                      <FileText className="w-4 h-4 text-emerald-400" />
+                      Resume
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showResumeMenu ? "rotate-180" : ""}`} />
+                    </button>
+
+                    {/* Resume Dropdown Popover */}
+                    <AnimatePresence>
+                      {showResumeMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute left-0 mt-2 w-56 p-2 rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl z-30 space-y-1 backdrop-blur-xl"
+                        >
+                          <a
+                            href={resumeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setShowResumeMenu(false)}
+                            className="w-full px-3.5 py-2.5 rounded-xl hover:bg-emerald-500/15 text-white font-mono text-xs font-medium flex items-center justify-between transition-colors group"
+                          >
+                            <span className="flex items-center gap-2">
+                              <ExternalLink className="w-4 h-4 text-emerald-400" /> View Resume
+                            </span>
+                            <span className="text-[10px] text-neutral-400 group-hover:text-emerald-300">Tab ↗</span>
+                          </a>
+
+                          <a
+                            href={resumeUrl}
+                            download={resumeFileName}
+                            onClick={() => setShowResumeMenu(false)}
+                            className="w-full px-3.5 py-2.5 rounded-xl hover:bg-emerald-500/15 text-white font-mono text-xs font-medium flex items-center justify-between transition-colors group"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Download className="w-4 h-4 text-cyan-400" /> Download PDF
+                            </span>
+                            <span className="text-[10px] text-neutral-400 group-hover:text-cyan-300">File ⤓</span>
+                          </a>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
                   <a
                     href="#contact"
-                    className="inline-flex items-center gap-2 px-6 py-3.5 border border-white/15 bg-white/[0.03] text-white font-medium rounded-xl hover:bg-white/[0.08] hover:border-white/30 transition-all"
+                    className="inline-flex items-center gap-2 px-5 py-3.5 border border-white/15 bg-white/[0.03] text-white font-medium rounded-xl hover:bg-white/[0.08] hover:border-white/30 transition-all"
                   >
                     Get In Touch
                   </a>
@@ -316,7 +373,7 @@ export default function Hero() {
                     <div className="w-24 h-24 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-emerald-400 font-extrabold font-mono text-3xl mb-3 shadow-inner">
                       MN
                     </div>
-                    <span className="text-sm font-heading font-bold text-white mb-1">{heroData.name}</span>
+                    <span className="text-sm font-heading font-bold text-white mb-1">Mohammadrahil Nasardi</span>
                     <span className="text-xs font-mono text-emerald-400">Data Science & AIML Student</span>
                   </div>
                 )}

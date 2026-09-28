@@ -252,5 +252,21 @@
     "Kannada (Read/Write/Speak)",
     "Urdu (Speak)",
     "Marathi (Read)"
+  ],
+  "resumeData": {
+    "url": "/Mohammadrahil_Nasardi_Resume.pdf",
+    "fileName": "Mohammadrahil_Nasardi_Resume.pdf",
+    "updatedAt": "2026-09"
+  },
+  "certificatesList": [
+    {
+      "id": "cert-1",
+      "title": "AI Assisted Coding for Beginners Certification",
+      "organization": "AZ Career Link",
+      "date": "2025",
+      "credentialUrl": "",
+      "imageUrl": "/certificates/ai_assisted_coding.png",
+      "order": 1
+    }
   ]
 }

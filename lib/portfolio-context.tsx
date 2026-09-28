@@ -55,6 +55,22 @@ export interface FocusData {
   roundsCount: string;
 }
 
+export interface ResumeData {
+  url: string;
+  fileName: string;
+  updatedAt?: string;
+}
+
+export interface CertificateItem {
+  id: string;
+  title: string;
+  organization: string;
+  date: string;
+  credentialUrl?: string;
+  imageUrl?: string;
+  order?: number;
+}
+
 import portfolioDefaultJson from "@/data/portfolio-default.json";
 
 const defaultHeroData: HeroData = portfolioDefaultJson.heroData as HeroData;
@@ -66,6 +82,22 @@ const defaultExperienceList = portfolioDefaultJson.experienceList as ExperienceI
 const defaultJourneyList = portfolioDefaultJson.journeyList as JourneyItem[];
 const defaultAchievementsList = portfolioDefaultJson.achievementsList as AchievementItem[];
 const defaultLanguagesList = portfolioDefaultJson.languagesList as string[];
+const defaultResumeData: ResumeData = (portfolioDefaultJson as any).resumeData || {
+  url: "/Mohammadrahil_Nasardi_Resume.pdf",
+  fileName: "Mohammadrahil_Nasardi_Resume.pdf",
+  updatedAt: "2026-09",
+};
+const defaultCertificatesList: CertificateItem[] = (portfolioDefaultJson as any).certificatesList || [
+  {
+    id: "cert-1",
+    title: "AI Assisted Coding for Beginners Certification",
+    organization: "AZ Career Link",
+    date: "2025",
+    credentialUrl: "",
+    imageUrl: "/certificates/ai_assisted_coding.png",
+    order: 1,
+  },
+];
 
 interface PortfolioContextType {
   isAdmin: boolean;
@@ -113,6 +145,15 @@ interface PortfolioContextType {
   languages: string[];
   updateLanguages: (langs: string[]) => void;
 
+  resumeData: ResumeData;
+  updateResumeData: (data: Partial<ResumeData>) => void;
+
+  certificates: CertificateItem[];
+  addCertificate: (cert: CertificateItem) => void;
+  updateCertificate: (id: string, cert: Partial<CertificateItem>) => void;
+  deleteCertificate: (id: string) => void;
+  reorderCertificates: (newList: CertificateItem[]) => void;
+
   resetToDefaults: () => void;
   exportDataJSON: () => string;
   importDataJSON: (jsonStr: string) => boolean;
@@ -137,6 +178,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [journeyList, setJourneyList] = useState<JourneyItem[]>(defaultJourneyList);
   const [achievementsList, setAchievementsList] = useState<AchievementItem[]>(defaultAchievementsList);
   const [languagesList, setLanguagesList] = useState<string[]>(defaultLanguagesList);
+  const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
+  const [certificatesList, setCertificatesList] = useState<CertificateItem[]>(defaultCertificatesList);
 
   const applyPayload = (payload: any) => {
     if (!payload) return;
@@ -149,6 +192,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (payload.journeyList) setJourneyList(payload.journeyList);
     if (payload.achievementsList) setAchievementsList(payload.achievementsList);
     if (payload.languagesList) setLanguagesList(payload.languagesList);
+    if (payload.resumeData) setResumeData(payload.resumeData);
+    if (payload.certificatesList) setCertificatesList(payload.certificatesList);
   };
 
   // Load from Storage (IndexedDB + Cloud Database) on mount
@@ -211,6 +256,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     journeyList,
     achievementsList,
     languagesList,
+    resumeData,
+    certificatesList,
   });
 
   const openLoginModal = () => setIsLoginModalOpen(true);
@@ -395,6 +442,37 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     saveData({ ...currentPayload(), languagesList: langs });
   };
 
+  const updateResumeData = (data: Partial<ResumeData>) => {
+    const updated = { ...resumeData, ...data };
+    setResumeData(updated);
+    saveData({ ...currentPayload(), resumeData: updated });
+  };
+
+  const addCertificate = (cert: CertificateItem) => {
+    const updated = [...certificatesList, cert];
+    setCertificatesList(updated);
+    saveData({ ...currentPayload(), certificatesList: updated });
+  };
+
+  const updateCertificate = (id: string, cert: Partial<CertificateItem>) => {
+    const updated = certificatesList.map((item) =>
+      item.id === id ? { ...item, ...cert } : item
+    );
+    setCertificatesList(updated);
+    saveData({ ...currentPayload(), certificatesList: updated });
+  };
+
+  const deleteCertificate = (id: string) => {
+    const updated = certificatesList.filter((item) => item.id !== id);
+    setCertificatesList(updated);
+    saveData({ ...currentPayload(), certificatesList: updated });
+  };
+
+  const reorderCertificates = (newList: CertificateItem[]) => {
+    setCertificatesList(newList);
+    saveData({ ...currentPayload(), certificatesList: newList });
+  };
+
   const resetToDefaults = () => {
     setHeroData(defaultHeroData);
     setAboutData(defaultAboutData);
@@ -405,6 +483,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setJourneyList(defaultJourneyList);
     setAchievementsList(defaultAchievementsList);
     setLanguagesList(defaultLanguagesList);
+    setResumeData(defaultResumeData);
+    setCertificatesList(defaultCertificatesList);
     localStorage.removeItem(LOCAL_STORAGE_KEY);
   };
 
@@ -424,6 +504,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (parsed.journeyList) setJourneyList(parsed.journeyList);
       if (parsed.achievementsList) setAchievementsList(parsed.achievementsList);
       if (parsed.languagesList) setLanguagesList(parsed.languagesList);
+      if (parsed.resumeData) setResumeData(parsed.resumeData);
+      if (parsed.certificatesList) setCertificatesList(parsed.certificatesList);
       saveData(parsed);
       return true;
     } catch (e) {
@@ -469,6 +551,13 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         deleteAchievement,
         languages: languagesList,
         updateLanguages,
+        resumeData,
+        updateResumeData,
+        certificates: certificatesList,
+        addCertificate,
+        updateCertificate,
+        deleteCertificate,
+        reorderCertificates,
         resetToDefaults,
         exportDataJSON,
         importDataJSON,

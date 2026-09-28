@@ -18,6 +18,12 @@ import {
   Sparkles,
   AlertCircle,
   Copy,
+  FileText,
+  Award,
+  Plus,
+  Edit3,
+  Trash2,
+  ExternalLink,
 } from "lucide-react";
 import {
   getCloudConfig,
@@ -50,6 +56,12 @@ export default function AdminModal() {
     journey,
     achievements,
     languages,
+    resumeData,
+    updateResumeData,
+    certificates,
+    addCertificate,
+    updateCertificate,
+    deleteCertificate,
   } = usePortfolio();
 
   const [passwordInput, setPasswordInput] = useState("");
@@ -78,6 +90,31 @@ export default function AdminModal() {
 
   const [isCloudActive, setIsCloudActive] = useState(false);
   const [cloudStatusMsg, setCloudStatusMsg] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+
+  // Resume Management Modal State
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [resumeUrlInput, setResumeUrlInput] = useState(resumeData?.url || "");
+  const [resumeFileNameInput, setResumeFileNameInput] = useState(resumeData?.fileName || "");
+
+  // Certificates Management Modal State
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [certForm, setCertForm] = useState({
+    id: "",
+    title: "",
+    organization: "",
+    date: "",
+    credentialUrl: "",
+    imageUrl: "",
+  });
+  const [isEditingCert, setIsEditingCert] = useState(false);
+
+  // Sync state when resumeData changes
+  useEffect(() => {
+    if (resumeData) {
+      setResumeUrlInput(resumeData.url || "");
+      setResumeFileNameInput(resumeData.fileName || "");
+    }
+  }, [resumeData]);
 
   // Shortcut Ctrl + Shift + A or Ctrl + Alt + E
   useEffect(() => {
@@ -167,7 +204,7 @@ export default function AdminModal() {
     a.click();
     URL.revokeObjectURL(url);
     alert(
-      "Downloaded portfolio-default.json!\n\nTo make your photo and edits permanent for EVERY public visitor on https://rahil-portfolio15.netlify.app/:\n1. Replace 'data/portfolio-default.json' in your project with this downloaded file.\n2. Commit & push/re-deploy to Netlify!\n\nEvery visitor worldwide will now see your photo & custom portfolio automatically!"
+      "Downloaded portfolio-default.json!\n\nTo make your edits permanent on static hosts:\n1. Replace 'data/portfolio-default.json' in your repository.\n2. Commit & push!"
     );
   };
 
@@ -201,7 +238,6 @@ export default function AdminModal() {
 
     setCloudStatusMsg({ type: "info", text: "Connecting & testing table access..." });
 
-    // Step 1: Test Connection & Table
     const testResult = await testCloudConnection(config);
 
     if (!testResult.success) {
@@ -209,7 +245,6 @@ export default function AdminModal() {
       return;
     }
 
-    // Step 2: Push current master payload to Cloud
     setCloudStatusMsg({ type: "info", text: "Syncing portfolio data to cloud..." });
 
     const payload = {
@@ -222,6 +257,8 @@ export default function AdminModal() {
       journeyList: journey,
       achievementsList: achievements,
       languagesList: languages,
+      resumeData,
+      certificatesList: certificates,
     };
 
     const saveResult = await saveCloudPortfolioData(payload, config);
@@ -231,12 +268,55 @@ export default function AdminModal() {
       setIsCloudActive(true);
       setCloudStatusMsg({ type: "success", text: `✓ ${cloudProvider === "supabase" ? "Supabase" : "JSONBin"} Connected & Live Sync Active!` });
       alert(
-        `✓ ${cloudProvider === "supabase" ? "Supabase Database" : "JSONBin.io"} Connected Successfully!\n\nEvery edit you make in Admin Mode on any device will now instantly sync live for ALL visitors on https://rahil-portfolio15.netlify.app/ in real time!`
+        `✓ ${cloudProvider === "supabase" ? "Supabase Database" : "JSONBin.io"} Connected Successfully!\n\nEvery edit you make in Admin Mode on any device will now instantly sync live worldwide in real time!`
       );
       setShowCloudModal(false);
     } else {
       setCloudStatusMsg({ type: "error", text: saveResult.message || "Initial data push failed." });
     }
+  };
+
+  const handleSaveResume = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateResumeData({
+      url: resumeUrlInput.trim(),
+      fileName: resumeFileNameInput.trim() || "Mohammadrahil_Nasardi_Resume.pdf",
+      updatedAt: new Date().toISOString().slice(0, 7),
+    });
+    alert("✓ Resume reference updated successfully!");
+    setShowResumeModal(false);
+  };
+
+  const handleCertSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!certForm.title || !certForm.organization) {
+      alert("Title and Organization are required.");
+      return;
+    }
+
+    if (isEditingCert && certForm.id) {
+      updateCertificate(certForm.id, certForm);
+    } else {
+      addCertificate({
+        ...certForm,
+        id: "cert-" + Date.now(),
+      });
+    }
+
+    setCertForm({
+      id: "",
+      title: "",
+      organization: "",
+      date: "",
+      credentialUrl: "",
+      imageUrl: "",
+    });
+    setIsEditingCert(false);
+  };
+
+  const handleEditCertClick = (cert: any) => {
+    setCertForm(cert);
+    setIsEditingCert(true);
   };
 
   return (
@@ -247,10 +327,28 @@ export default function AdminModal() {
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="font-bold tracking-wider">ADMIN EDIT MODE ACTIVE</span>
-            <span className="text-neutral-400 hidden lg:inline">| Live editing controls enabled</span>
+            <span className="text-neutral-400 hidden lg:inline">| Live editing enabled</span>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Resume Admin Button */}
+            <button
+              onClick={() => setShowResumeModal(true)}
+              className="px-2.5 py-1 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30 flex items-center gap-1 transition-all"
+              title="Manage Resume PDF link & file name"
+            >
+              <FileText className="w-3.5 h-3.5 text-emerald-400" /> Resume PDF
+            </button>
+
+            {/* Certifications Admin Button */}
+            <button
+              onClick={() => setShowCertModal(true)}
+              className="px-2.5 py-1 rounded bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30 flex items-center gap-1 transition-all"
+              title="Manage Certifications Gallery"
+            >
+              <Award className="w-3.5 h-3.5 text-cyan-400" /> Certificates
+            </button>
+
             {/* Cloud Database Sync Button */}
             <button
               onClick={() => setShowCloudModal(true)}
@@ -362,6 +460,257 @@ export default function AdminModal() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Resume Management Modal */}
+      {showResumeModal && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-md w-full p-6 rounded-3xl border border-emerald-500/40 bg-slate-900 shadow-2xl relative">
+            <button
+              onClick={() => setShowResumeModal(false)}
+              className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Resume Admin Control</h3>
+                <p className="text-xs text-neutral-400 font-mono">
+                  Configure PDF file URL reference for View & Download
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveResume} className="space-y-4 text-xs font-mono">
+              <div>
+                <label className="block text-neutral-300 mb-1 font-bold">Resume PDF Path or URL:</label>
+                <input
+                  type="text"
+                  required
+                  value={resumeUrlInput}
+                  onChange={(e) => setResumeUrlInput(e.target.value)}
+                  placeholder="/Mohammadrahil_Nasardi_Resume.pdf or https://..."
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/15 text-white focus:border-emerald-500"
+                />
+                <p className="text-[10px] text-neutral-400 mt-1">
+                  Default: /Mohammadrahil_Nasardi_Resume.pdf (public folder) or any direct hosted link.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-neutral-300 mb-1 font-bold">Download File Name:</label>
+                <input
+                  type="text"
+                  required
+                  value={resumeFileNameInput}
+                  onChange={(e) => setResumeFileNameInput(e.target.value)}
+                  placeholder="Mohammadrahil_Nasardi_Resume.pdf"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/15 text-white focus:border-emerald-500"
+                />
+              </div>
+
+              {resumeUrlInput && (
+                <div className="flex gap-2 pt-1">
+                  <a
+                    href={resumeUrlInput}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-emerald-400 font-bold flex items-center justify-center gap-1.5 text-xs"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" /> Test View PDF
+                  </a>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setShowResumeModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-white/10 text-neutral-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 font-bold rounded-xl bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" /> Save Resume Settings
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Certifications Management Modal */}
+      {showCertModal && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-2xl w-full p-6 rounded-3xl border border-cyan-500/40 bg-slate-900 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <button
+              onClick={() => setShowCertModal(false)}
+              className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                <Award className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Certifications Manager</h3>
+                <p className="text-xs text-neutral-400 font-mono">
+                  Add, edit, or remove verified credentials in your gallery
+                </p>
+              </div>
+            </div>
+
+            {/* Existing Certificates List */}
+            <div className="space-y-3 mb-6">
+              <h4 className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider">
+                Current Certificates ({certificates.length}):
+              </h4>
+
+              {certificates.length === 0 ? (
+                <p className="text-xs font-mono text-neutral-400 italic">No certificates currently in list.</p>
+              ) : (
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                  {certificates.map((cert) => (
+                    <div
+                      key={cert.id}
+                      className="p-3 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-between gap-3 text-xs font-mono"
+                    >
+                      <div className="truncate">
+                        <span className="text-white font-bold block truncate">{cert.title}</span>
+                        <span className="text-neutral-400 text-[11px] truncate">
+                          {cert.organization} {cert.date ? `• ${cert.date}` : ""}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleEditCertClick(cert)}
+                          className="p-1.5 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30"
+                          title="Edit Certificate"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm(`Delete certificate "${cert.title}"?`)) {
+                              deleteCertificate(cert.id);
+                            }
+                          }}
+                          className="p-1.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30"
+                          title="Delete Certificate"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add / Edit Form */}
+            <div className="p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/20 space-y-4 text-xs font-mono">
+              <h4 className="text-cyan-300 font-bold flex items-center gap-2">
+                <Plus className="w-4 h-4" /> {isEditingCert ? "Edit Certificate Entry" : "Add New Certificate"}
+              </h4>
+
+              <form onSubmit={handleCertSubmit} className="space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-neutral-300 mb-1">Certificate Title:</label>
+                    <input
+                      type="text"
+                      required
+                      value={certForm.title}
+                      onChange={(e) => setCertForm({ ...certForm, title: e.target.value })}
+                      placeholder="e.g. AWS Certified Machine Learning Specialty"
+                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-white/15 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-300 mb-1">Issuing Organization:</label>
+                    <input
+                      type="text"
+                      required
+                      value={certForm.organization}
+                      onChange={(e) => setCertForm({ ...certForm, organization: e.target.value })}
+                      placeholder="e.g. Amazon Web Services / AZ Career Link"
+                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-white/15 text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-neutral-300 mb-1">Year / Date Issued:</label>
+                    <input
+                      type="text"
+                      value={certForm.date}
+                      onChange={(e) => setCertForm({ ...certForm, date: e.target.value })}
+                      placeholder="e.g. 2025"
+                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-white/15 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-300 mb-1">Verification Credential URL:</label>
+                    <input
+                      type="text"
+                      value={certForm.credentialUrl}
+                      onChange={(e) => setCertForm({ ...certForm, credentialUrl: e.target.value })}
+                      placeholder="https://coursera.org/verify/..."
+                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-white/15 text-white"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-neutral-300 mb-1">Certificate Image / Badge URL:</label>
+                  <input
+                    type="text"
+                    value={certForm.imageUrl}
+                    onChange={(e) => setCertForm({ ...certForm, imageUrl: e.target.value })}
+                    placeholder="/certificates/ai_assisted_coding.png or image web URL"
+                    className="w-full p-2.5 rounded-xl bg-slate-900 border border-white/15 text-white"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  {isEditingCert && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingCert(false);
+                        setCertForm({ id: "", title: "", organization: "", date: "", credentialUrl: "", imageUrl: "" });
+                      }}
+                      className="px-3 py-2 rounded-xl bg-white/10 text-neutral-300"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold flex items-center gap-1 shadow-lg shadow-cyan-500/20"
+                  >
+                    <Check className="w-4 h-4" /> {isEditingCert ? "Save Changes" : "Add Certificate"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
