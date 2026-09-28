@@ -58,6 +58,7 @@ export interface FocusData {
 export interface ResumeData {
   url: string;
   fileName: string;
+  filePath?: string;
   updatedAt?: string;
 }
 
@@ -68,6 +69,7 @@ export interface CertificateItem {
   date: string;
   credentialUrl?: string;
   imageUrl?: string;
+  imagePath?: string;
   order?: number;
 }
 
