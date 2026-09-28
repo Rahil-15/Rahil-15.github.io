@@ -82,7 +82,7 @@ export default function Hero() {
   const resumeFileName = resumeData?.fileName || "Mohammadrahil_Nasardi_Resume.pdf";
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center pt-28 pb-16 overflow-hidden">
+    <section id="hero" className="relative min-h-screen flex items-center pt-24 sm:pt-28 pb-12 sm:pb-16 overflow-hidden">
       {/* Hidden File Input for Device Photo Browsing */}
       <input
         type="file"
@@ -106,8 +106,8 @@ export default function Hero() {
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-emerald-500/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute top-1/4 right-10 w-[450px] h-[450px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto px-6 w-full relative z-10">
-        <div className="grid lg:grid-cols-12 gap-12 items-center">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 w-full relative z-10">
+        <div className="grid lg:grid-cols-12 gap-8 sm:gap-12 items-center">
           
           {/* Left Column: Bio & Intro Text */}
           <motion.div
@@ -122,9 +122,9 @@ export default function Hero() {
             }}
             className="lg:col-span-7"
           >
-            <motion.div variants={fadeInUp} className="mb-6 flex flex-wrap items-center gap-3">
+            <motion.div variants={fadeInUp} className="mb-4 sm:mb-6 flex flex-wrap items-center gap-2 sm:gap-3">
               <AvailabilityBadge />
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-mono bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                 <Sparkles className="w-3.5 h-3.5" /> Data Science & AIML
               </span>
               {isAdmin && (
@@ -141,7 +141,7 @@ export default function Hero() {
             </motion.div>
 
             {isEditing ? (
-              <div className="p-6 rounded-2xl border border-amber-500/40 bg-slate-900/95 space-y-4 mb-6 text-xs font-mono">
+              <div className="p-4 sm:p-6 rounded-2xl border border-amber-500/40 bg-slate-900/95 space-y-4 mb-6 text-xs font-mono">
                 <h4 className="text-amber-400 font-bold text-sm">Edit Hero Details & Photo Overlay Badges</h4>
                 
                 {/* Profile Photo Uploader in Modal */}
@@ -261,33 +261,33 @@ export default function Hero() {
               </div>
             ) : (
               <>
-                <motion.h1 variants={fadeInUp} className="text-4xl sm:text-5xl md:text-6xl font-heading font-extrabold text-white tracking-tight leading-[1.15] mb-6">
+                <motion.h1 variants={fadeInUp} className="text-3xl sm:text-5xl md:text-6xl font-heading font-extrabold text-white tracking-tight leading-[1.15] mb-4 sm:mb-6 break-words">
                   Hi, I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400">Mohammadrahil Nasardi</span>
                 </motion.h1>
 
-                <motion.p variants={fadeInUp} className="text-lg md:text-xl text-neutral-300 font-medium mb-4">
+                <motion.p variants={fadeInUp} className="text-base sm:text-lg md:text-xl text-neutral-300 font-medium mb-3 sm:mb-4">
                   {heroData.role}
                 </motion.p>
 
-                <motion.p variants={fadeInUp} className="text-base text-neutral-400 mb-8 max-w-xl leading-relaxed">
+                <motion.p variants={fadeInUp} className="text-sm sm:text-base text-neutral-400 mb-6 sm:mb-8 max-w-xl leading-relaxed">
                   {heroData.tagline}
                 </motion.p>
 
                 {/* Primary Actions Grid */}
-                <motion.div variants={fadeInUp} className="flex flex-wrap gap-4 items-center mb-6 relative">
+                <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center mb-6 relative w-full sm:w-auto">
                   <a
                     href="#projects"
-                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 text-sm"
                   >
                     View Projects
                     <ArrowRight className="w-4 h-4" />
                   </a>
 
                   {/* Clean Resume Control Popover */}
-                  <div className="relative">
+                  <div className="relative w-full sm:w-auto">
                     <button
                       onClick={() => setShowResumeMenu(!showResumeMenu)}
-                      className="inline-flex items-center gap-2 px-5 py-3.5 border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 font-semibold rounded-xl hover:bg-emerald-500/20 transition-all shadow-lg"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 font-semibold rounded-xl hover:bg-emerald-500/20 transition-all shadow-lg text-sm"
                     >
                       <FileText className="w-4 h-4 text-emerald-400" />
                       Resume
@@ -302,7 +302,7 @@ export default function Hero() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 8, scale: 0.95 }}
                           transition={{ duration: 0.15 }}
-                          className="absolute left-0 mt-2 w-56 p-2 rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl z-30 space-y-1 backdrop-blur-xl"
+                          className="absolute left-0 right-0 sm:right-auto mt-2 sm:w-56 p-2 rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl z-30 space-y-1 backdrop-blur-xl"
                         >
                           <a
                             href={resumeUrl}
@@ -335,7 +335,7 @@ export default function Hero() {
 
                   <a
                     href="#contact"
-                    className="inline-flex items-center gap-2 px-5 py-3.5 border border-white/15 bg-white/[0.03] text-white font-medium rounded-xl hover:bg-white/[0.08] hover:border-white/30 transition-all"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3.5 border border-white/15 bg-white/[0.03] text-white font-medium rounded-xl hover:bg-white/[0.08] hover:border-white/30 transition-all text-sm"
                   >
                     Get In Touch
                   </a>
@@ -351,7 +351,7 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="lg:col-span-5 relative"
           >
-            <div className="relative p-6 sm:p-7 rounded-3xl border border-emerald-500/20 bg-slate-900/80 backdrop-blur-xl shadow-2xl space-y-6">
+            <div className="relative p-4 sm:p-7 rounded-3xl border border-emerald-500/20 bg-slate-900/80 backdrop-blur-xl shadow-2xl space-y-4 sm:space-y-6">
               
               {/* Large Portrait Showcase Container */}
               <div
@@ -370,7 +370,7 @@ export default function Hero() {
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 p-6 text-center">
-                    <div className="w-24 h-24 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-emerald-400 font-extrabold font-mono text-3xl mb-3 shadow-inner">
+                    <div className="w-20 sm:w-24 h-20 sm:h-24 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-emerald-400 font-extrabold font-mono text-2xl sm:text-3xl mb-3 shadow-inner">
                       MN
                     </div>
                     <span className="text-sm font-heading font-bold text-white mb-1">Mohammadrahil Nasardi</span>
@@ -382,12 +382,12 @@ export default function Hero() {
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent pointer-events-none" />
 
                 {/* Customizable Floating Overlay Badges */}
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none gap-2">
-                  <div className="px-3 py-1.5 rounded-xl bg-slate-900/85 backdrop-blur border border-emerald-500/30 text-white font-heading font-bold text-xs flex items-center gap-1.5 shadow-lg max-w-[58%] truncate">
+                <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex flex-wrap sm:flex-nowrap items-center justify-between pointer-events-none gap-2">
+                  <div className="px-3 py-1.5 rounded-xl bg-slate-900/85 backdrop-blur border border-emerald-500/30 text-white font-heading font-bold text-xs flex items-center gap-1.5 shadow-lg max-w-full sm:max-w-[58%] truncate">
                     <Sparkles className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
                     <span className="truncate">{heroData.badge1Text || "Data Science & AIML Student"}</span>
                   </div>
-                  <div className="px-2.5 py-1 rounded-xl bg-slate-900/85 backdrop-blur border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-bold shadow-lg max-w-[40%] truncate">
+                  <div className="px-2.5 py-1 rounded-xl bg-slate-900/85 backdrop-blur border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-bold shadow-lg max-w-full sm:max-w-[40%] truncate">
                     <span className="truncate">{heroData.badge2Text || "Jain College of Engg, VTU"}</span>
                   </div>
                 </div>
@@ -409,7 +409,7 @@ export default function Hero() {
               <div className="pt-2 border-t border-white/10 flex items-center justify-between flex-wrap gap-2 text-xs">
                 <span className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider">Connect & Links:</span>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {heroData.linkedin && (
                     <a
                       href={heroData.linkedin}
@@ -435,7 +435,7 @@ export default function Hero() {
                       href={`mailto:${heroData.email}`}
                       className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/10 text-neutral-200 hover:text-indigo-300 transition-all flex items-center gap-1.5 text-xs font-mono"
                     >
-                      <Mail className="w-3.5 h-3.5 text-indigo-400" /> {heroData.email}
+                      <Mail className="w-3.5 h-3.5 text-indigo-400" /> <span className="truncate max-w-[140px] sm:max-w-none">{heroData.email}</span>
                     </a>
                   )}
                 </div>

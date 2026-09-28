@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { usePortfolio } from "@/lib/portfolio-context";
-import { Menu, X, FileText, Download, ExternalLink, ShieldCheck } from "lucide-react";
+import { Menu, X, FileText, Download, ExternalLink } from "lucide-react";
 
 const navItems = [
   { name: "About", href: "#about" },
@@ -24,7 +24,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 40);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -33,15 +33,16 @@ export default function Navbar() {
   return (
     <nav
       className={cn(
-        "fixed top-0 w-full z-50 transition-all duration-300",
+        "fixed w-full z-40 transition-all duration-300",
+        isAdmin ? "top-14 sm:top-10" : "top-0",
         scrolled
-          ? "bg-[#0B0F19]/90 backdrop-blur-xl border-b border-white/10 py-3.5 shadow-lg shadow-black/30"
-          : "bg-transparent py-5"
+          ? "bg-[#0B0F19]/95 backdrop-blur-xl border-b border-white/10 py-3 shadow-lg shadow-black/30"
+          : "bg-transparent py-4 sm:py-5"
       )}
     >
-      <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between">
         {/* Brand Logo - MN. */}
-        <a href="#" className="font-heading font-extrabold text-xl tracking-tight text-white flex items-center gap-1 group">
+        <a href="#" className="font-heading font-extrabold text-lg sm:text-xl tracking-tight text-white flex items-center gap-1 group">
           MN<span className="text-emerald-400 group-hover:text-cyan-400 transition-colors">.</span>
           <span className="hidden sm:inline text-xs font-mono font-normal text-neutral-400 ml-2 border-l border-white/15 pl-2">
             Data Science & AI
@@ -86,6 +87,16 @@ export default function Navbar() {
 
         {/* Mobile Hamburger Toggle */}
         <div className="flex items-center gap-2 lg:hidden">
+          {resumeData?.url && (
+            <a
+              href={resumeData.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1.5 rounded-lg text-[11px] font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1"
+            >
+              <FileText className="w-3 h-3 text-emerald-400" /> CV
+            </a>
+          )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-xl text-neutral-300 hover:text-white bg-white/5 border border-white/10"
@@ -98,7 +109,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-slate-900/95 border-b border-white/10 backdrop-blur-2xl px-6 py-6 space-y-3 shadow-2xl animate-in slide-in-from-top duration-200">
+        <div className="lg:hidden bg-slate-900/98 border-b border-white/10 backdrop-blur-2xl px-4 sm:px-6 py-5 space-y-3 shadow-2xl animate-in slide-in-from-top duration-200">
           <div className="grid grid-cols-2 gap-2">
             {navItems.map((item) => (
               <a
@@ -108,9 +119,9 @@ export default function Navbar() {
                   setActive(item.name);
                   setMobileMenuOpen(false);
                 }}
-                className="px-3 py-2 rounded-xl text-xs font-mono bg-white/5 text-neutral-200 hover:text-emerald-400 hover:bg-white/10 flex items-center justify-between"
+                className="px-3 py-2 rounded-xl text-[11px] sm:text-xs font-mono bg-white/5 text-neutral-200 hover:text-emerald-400 hover:bg-white/10 flex items-center justify-between truncate"
               >
-                {item.name}
+                <span className="truncate">{item.name}</span>
               </a>
             ))}
           </div>

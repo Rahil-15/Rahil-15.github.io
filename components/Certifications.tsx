@@ -37,15 +37,15 @@ export default function Certifications() {
   }, [selectedIndex, certificates.length]);
 
   return (
-    <section id="certifications" className="py-24 md:py-32 border-t border-white/5 relative">
-      <div className="max-w-6xl mx-auto px-6">
+    <section id="certifications" className="py-20 sm:py-24 md:py-32 border-t border-white/5 relative">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           variants={staggerContainer}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-12 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 sm:mb-12 gap-4">
             <div>
               <span className="inline-block px-3 py-1 mb-3 text-xs font-mono font-medium text-cyan-400 border border-cyan-500/20 bg-cyan-500/10 rounded-full">
                 Verified Credentials
@@ -57,12 +57,12 @@ export default function Certifications() {
           </div>
 
           {certificates.length === 0 ? (
-            <div className="p-8 rounded-2xl border border-white/10 bg-slate-900/40 text-center text-neutral-400 font-mono text-sm">
+            <div className="p-6 sm:p-8 rounded-2xl border border-white/10 bg-slate-900/40 text-center text-neutral-400 font-mono text-sm">
               <Award className="w-8 h-8 text-neutral-500 mx-auto mb-2" />
               No certifications added yet. Log in to Admin Mode to add your credentials.
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {certificates.map((cert, index) => (
                 <motion.div
                   key={cert.id || index}
@@ -86,7 +86,7 @@ export default function Certifications() {
                         />
                       ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 text-center">
-                          <Award className="w-12 h-12 text-cyan-400/80 mb-2 group-hover:scale-110 transition-transform" />
+                          <Award className="w-10 sm:w-12 h-10 sm:h-12 text-cyan-400/80 mb-2 group-hover:scale-110 transition-transform" />
                           <span className="text-xs font-mono text-cyan-300 font-bold max-w-[80%] truncate">
                             {cert.organization}
                           </span>
@@ -102,19 +102,19 @@ export default function Certifications() {
                     </div>
 
                     {/* Card Content */}
-                    <div className="p-5">
+                    <div className="p-4 sm:p-5">
                       <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="text-[11px] font-mono text-cyan-400 font-semibold px-2.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">
+                        <span className="text-[11px] font-mono text-cyan-400 font-semibold px-2.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20 truncate max-w-[70%]">
                           {cert.organization}
                         </span>
                         {cert.date && (
-                          <span className="text-[11px] font-mono text-neutral-400">
+                          <span className="text-[11px] font-mono text-neutral-400 flex-shrink-0">
                             {cert.date}
                           </span>
                         )}
                       </div>
 
-                      <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-2">
+                      <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-2">
                         {cert.title}
                       </h3>
                     </div>
@@ -154,39 +154,39 @@ export default function Certifications() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4"
             onClick={() => setSelectedIndex(null)}
           >
             <div
-              className="relative max-w-4xl w-full bg-slate-900 border border-cyan-500/30 rounded-3xl p-6 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="relative max-w-4xl w-full bg-slate-900 border border-cyan-500/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-cyan-400" />
-                  <div>
-                    <h3 className="text-lg font-bold text-white">{selectedCert.title}</h3>
-                    <p className="text-xs font-mono text-neutral-400">
+              <div className="flex items-center justify-between pb-3 sm:pb-4 mb-3 sm:mb-4 border-b border-white/10 gap-2">
+                <div className="flex items-center gap-2 truncate">
+                  <Award className="w-5 h-5 text-cyan-400 flex-shrink-0" />
+                  <div className="truncate">
+                    <h3 className="text-base sm:text-lg font-bold text-white truncate">{selectedCert.title}</h3>
+                    <p className="text-[11px] sm:text-xs font-mono text-neutral-400 truncate">
                       {selectedCert.organization} {selectedCert.date ? `• ${selectedCert.date}` : ""}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {selectedCert.credentialUrl && (
                     <a
                       href={selectedCert.credentialUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs hover:bg-cyan-500/20 flex items-center gap-1.5"
+                      className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-[11px] sm:text-xs hover:bg-cyan-500/20 flex items-center gap-1"
                     >
-                      <ExternalLink className="w-3.5 h-3.5" /> Verify Link
+                      <ExternalLink className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Verify Link</span>
                     </a>
                   )}
                   <button
                     onClick={() => setSelectedIndex(null)}
-                    className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                    className="p-1.5 sm:p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -194,17 +194,17 @@ export default function Certifications() {
               </div>
 
               {/* Lightbox Main Image Preview */}
-              <div className="relative flex-1 min-h-[300px] max-h-[60vh] bg-slate-950 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center p-2">
+              <div className="relative flex-1 min-h-[220px] sm:min-h-[300px] max-h-[55vh] sm:max-h-[60vh] bg-slate-950 rounded-xl sm:rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center p-2">
                 {selectedCert.imageUrl ? (
                   <img
                     src={selectedCert.imageUrl}
                     alt={selectedCert.title}
-                    className="w-full h-full object-contain max-h-[58vh] rounded-xl"
+                    className="w-full h-full object-contain max-h-[52vh] sm:max-h-[58vh] rounded-lg sm:rounded-xl"
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center p-8 text-center space-y-3">
-                    <Award className="w-20 h-20 text-cyan-400/60 animate-pulse" />
-                    <span className="text-lg font-heading font-bold text-white">{selectedCert.title}</span>
+                  <div className="flex flex-col items-center justify-center p-6 sm:p-8 text-center space-y-2">
+                    <Award className="w-16 sm:w-20 h-16 sm:h-20 text-cyan-400/60 animate-pulse" />
+                    <span className="text-base sm:text-lg font-heading font-bold text-white">{selectedCert.title}</span>
                     <span className="text-xs font-mono text-cyan-400">{selectedCert.organization}</span>
                   </div>
                 )}
@@ -214,24 +214,24 @@ export default function Certifications() {
                   <>
                     <button
                       onClick={handlePrev}
-                      className="absolute left-3 p-3 rounded-full bg-slate-900/80 border border-white/20 text-white hover:bg-cyan-500 hover:text-slate-950 transition-all shadow-xl"
-                      title="Previous Certificate (Left Arrow)"
+                      className="absolute left-2 sm:left-3 p-2.5 sm:p-3 rounded-full bg-slate-900/80 border border-white/20 text-white hover:bg-cyan-500 hover:text-slate-950 transition-all shadow-xl"
+                      title="Previous Certificate"
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5" />
                     </button>
                     <button
                       onClick={handleNext}
-                      className="absolute right-3 p-3 rounded-full bg-slate-900/80 border border-white/20 text-white hover:bg-cyan-500 hover:text-slate-950 transition-all shadow-xl"
-                      title="Next Certificate (Right Arrow)"
+                      className="absolute right-2 sm:right-3 p-2.5 sm:p-3 rounded-full bg-slate-900/80 border border-white/20 text-white hover:bg-cyan-500 hover:text-slate-950 transition-all shadow-xl"
+                      title="Next Certificate"
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5" />
                     </button>
                   </>
                 )}
               </div>
 
               {/* Footer indicator */}
-              <div className="pt-4 mt-2 flex items-center justify-between text-xs font-mono text-neutral-400">
+              <div className="pt-3 sm:pt-4 mt-2 flex items-center justify-between text-xs font-mono text-neutral-400">
                 <span>
                   Certificate {selectedIndex + 1} of {certificates.length}
                 </span>
