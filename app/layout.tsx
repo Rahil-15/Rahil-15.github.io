@@ -25,17 +25,36 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Mohammadrahil Nasardi | Data Science & Analytics | ML & GenAI Engineer",
   description: "Portfolio of Mohammadrahil Nasardi — B.E. CSE (AI&ML) student, Data Science & Analytics specialist, ML Engineer, and GenAI Developer.",
+  icons: {
+    icon: [
+      { url: "/Icon_portfolio.png", type: "image/png" },
+    ],
+    shortcut: ["/Icon_portfolio.png"],
+    apple: [
+      { url: "/Icon_portfolio.png", type: "image/png" },
+    ],
+  },
+  manifest: "/manifest.json",
   openGraph: {
     title: "Mohammadrahil Nasardi | Data Science & Analytics Portfolio",
     description: "Data Science, Machine Learning, RAG, and Federated Learning systems portfolio.",
     url: "https://rahilnasardi.com",
     siteName: "Mohammadrahil Nasardi Portfolio",
+    images: [
+      {
+        url: "/Icon_portfolio.png",
+        width: 1200,
+        height: 630,
+        alt: "Mohammadrahil Nasardi Portfolio Logo",
+      },
+    ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Mohammadrahil Nasardi | Data Science & AI Engineer",
     description: "Data Science, Machine Learning, and GenAI Portfolio.",
+    images: ["/Icon_portfolio.png"],
   },
 };
 

@@ -1,0 +1,23 @@
+{
+  "name": "Mohammadrahil Nasardi | Portfolio",
+  "short_name": "MN Portfolio",
+  "description": "Portfolio of Mohammadrahil Nasardi — Data Science & Analytics | ML & GenAI Engineer",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0F19",
+  "theme_color": "#0B0F19",
+  "icons": [
+    {
+      "src": "/Icon_portfolio.png",
+      "sizes": "192x192 512x512 1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Icon_portfolio.png",
+      "sizes": "192x192 512x512 1254x1254",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
