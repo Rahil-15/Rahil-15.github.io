@@ -27,11 +27,13 @@ export const metadata: Metadata = {
   description: "Portfolio of Mohammadrahil Nasardi — B.E. CSE (AI&ML) student, Data Science & Analytics specialist, ML Engineer, and GenAI Developer.",
   icons: {
     icon: [
-      { url: "/Icon_portfolio.png", type: "image/png" },
+      { url: "/favicon.png", sizes: "96x96", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: ["/Icon_portfolio.png"],
+    shortcut: ["/favicon.png"],
     apple: [
-      { url: "/Icon_portfolio.png", type: "image/png" },
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
   manifest: "/manifest.json",

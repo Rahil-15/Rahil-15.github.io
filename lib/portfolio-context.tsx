@@ -15,6 +15,7 @@ import {
   subscribeToRealtimeCloudUpdates,
   CloudConfig,
 } from "@/lib/cloud-storage";
+import { isLegacyLowResPhoto } from "@/lib/utils";
 
 export interface HeroData {
   name: string;
@@ -185,7 +186,13 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const applyPayload = (payload: any) => {
     if (!payload) return;
-    if (payload.heroData) setHeroData(payload.heroData);
+    if (payload.heroData) {
+      const hd = { ...payload.heroData };
+      if (!hd.photoUrl || isLegacyLowResPhoto(hd.photoUrl)) {
+        hd.photoUrl = "/me.jpeg";
+      }
+      setHeroData(hd);
+    }
     if (payload.aboutData) setAboutData(payload.aboutData);
     if (payload.focusData) setFocusData(payload.focusData);
     if (payload.projectsList) setProjectsList(payload.projectsList);

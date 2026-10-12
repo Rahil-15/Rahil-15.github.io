@@ -46,7 +46,7 @@ export default function PhotoCropModal({ imageSrc, onClose, onSave }: PhotoCropM
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const canvasSize = 400; // Output resolution 400x400
+    const canvasSize = 1080; // High-resolution output 1080x1080 HD
     canvas.width = canvasSize;
     canvas.height = canvasSize;
 
@@ -75,10 +75,12 @@ export default function PhotoCropModal({ imageSrc, onClose, onSave }: PhotoCropM
       drawWidth = canvasSize * imgAspect;
     }
 
+    const scaleOffset = canvasSize / 400;
+
     ctx.drawImage(
       imageObj,
-      -drawWidth / 2 + offsetX,
-      -drawHeight / 2 + offsetY,
+      -drawWidth / 2 + offsetX * scaleOffset,
+      -drawHeight / 2 + offsetY * scaleOffset,
       drawWidth,
       drawHeight
     );
@@ -88,19 +90,9 @@ export default function PhotoCropModal({ imageSrc, onClose, onSave }: PhotoCropM
 
   const handleSaveCrop = () => {
     if (!canvasRef.current) return;
-    // Create an optimized 350x350 output canvas for ultra-fast storage (~35KB string)
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = 350;
-    tempCanvas.height = 350;
-    const tempCtx = tempCanvas.getContext("2d");
-    if (tempCtx) {
-      tempCtx.drawImage(canvasRef.current, 0, 0, 350, 350);
-      const dataUrl = tempCanvas.toDataURL("image/jpeg", 0.78);
-      onSave(dataUrl);
-    } else {
-      const dataUrl = canvasRef.current.toDataURL("image/jpeg", 0.78);
-      onSave(dataUrl);
-    }
+    // Export crystal-clear high-definition profile photo with 92% quality
+    const dataUrl = canvasRef.current.toDataURL("image/jpeg", 0.92);
+    onSave(dataUrl);
     onClose();
   };
 
@@ -142,7 +134,7 @@ export default function PhotoCropModal({ imageSrc, onClose, onSave }: PhotoCropM
               {/* Data Science Overlay Frame Lines */}
               <div className="absolute inset-0 border border-emerald-400/20 pointer-events-none rounded-2xl" />
               <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur text-[10px] font-mono text-emerald-400">
-                400 x 400px Live Preview
+                1080 x 1080px HD Live Preview
               </div>
             </div>
           </div>

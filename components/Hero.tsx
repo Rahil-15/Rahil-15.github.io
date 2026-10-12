@@ -8,6 +8,7 @@ import { GithubIcon, LinkedinIcon } from "@/components/SocialIcons";
 import { usePortfolio } from "@/lib/portfolio-context";
 import { useState, useRef } from "react";
 import PhotoCropModal from "./PhotoCropModal";
+import { isLegacyLowResPhoto } from "@/lib/utils";
 
 export default function Hero() {
   const { heroData, updateHeroData, resumeData, isAdmin, openLoginModal } = usePortfolio();
@@ -150,11 +151,15 @@ export default function Hero() {
                   
                   <div className="flex flex-wrap items-center gap-4">
                     <div className="w-20 h-20 rounded-xl bg-slate-800 border border-emerald-500/40 overflow-hidden flex items-center justify-center flex-shrink-0">
-                      {form.photoUrl ? (
-                        <img src={form.photoUrl} alt="Preview" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-emerald-400 font-mono font-bold text-lg">MN</span>
-                      )}
+                      {(() => {
+                        const previewPhoto =
+                          !form.photoUrl || isLegacyLowResPhoto(form.photoUrl) ? "/me.jpeg" : form.photoUrl;
+                        return previewPhoto ? (
+                          <img src={previewPhoto} alt="Preview" className="w-full h-full object-cover object-top" />
+                        ) : (
+                          <span className="text-emerald-400 font-mono font-bold text-lg">MN</span>
+                        );
+                      })()}
                     </div>
 
                     <div className="flex flex-wrap gap-2">
@@ -359,24 +364,31 @@ export default function Hero() {
                 className="relative group cursor-pointer select-none rounded-2xl overflow-hidden aspect-[4/5] sm:aspect-square border-2 border-emerald-500/30 bg-slate-950 shadow-2xl shadow-emerald-500/10 transition-all duration-500 hover:border-emerald-400 hover:shadow-emerald-500/20"
                 title={isAdmin ? "Click to change photo / crop" : heroData.name}
               >
-                {heroData.photoUrl ? (
-                  <img
-                    src={heroData.photoUrl}
-                    alt={heroData.name}
-                    className="w-full h-full object-cover rounded-2xl transition-transform duration-700 group-hover:scale-105"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = "none";
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 p-6 text-center">
-                    <div className="w-20 sm:w-24 h-20 sm:h-24 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-emerald-400 font-extrabold font-mono text-2xl sm:text-3xl mb-3 shadow-inner">
-                      MN
+                {(() => {
+                  const isLegacy = isLegacyLowResPhoto(heroData.photoUrl);
+                  const activePhoto = !heroData.photoUrl || isLegacy ? "/me.jpeg" : heroData.photoUrl;
+
+                  return activePhoto ? (
+                    <img
+                      src={activePhoto}
+                      alt={heroData.name}
+                      loading="eager"
+                      fetchPriority="high"
+                      className="w-full h-full object-cover object-top rounded-2xl transition-transform duration-700 group-hover:scale-105"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 p-6 text-center">
+                      <div className="w-20 sm:w-24 h-20 sm:h-24 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-emerald-400 font-extrabold font-mono text-2xl sm:text-3xl mb-3 shadow-inner">
+                        MN
+                      </div>
+                      <span className="text-sm font-heading font-bold text-white mb-1">Mohammadrahil Nasardi</span>
+                      <span className="text-xs font-mono text-emerald-400">Data Science & AIML Student</span>
                     </div>
-                    <span className="text-sm font-heading font-bold text-white mb-1">Mohammadrahil Nasardi</span>
-                    <span className="text-xs font-mono text-emerald-400">Data Science & AIML Student</span>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Ambient Radial Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent pointer-events-none" />
